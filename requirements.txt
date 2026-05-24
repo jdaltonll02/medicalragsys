@@ -1,0 +1,46 @@
+# Medical RAG System Requirements
+
+# Core dependencies
+fastapi>=0.111.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.8.0
+pyyaml==6.0.1
+
+# ML/NLP libraries
+numpy==1.26.4
+torch>=2.6.0
+transformers>=4.40.0
+sentence-transformers>=3.0.0
+# scipy and scispaCy installed separately
+# spacy==3.7.2
+
+# Vector search
+faiss-cpu==1.9.0.post1
+# For GPU: faiss-gpu (install separately)
+
+# Search/IR
+elasticsearch==8.11.0
+rank-bm25==0.2.2
+
+# LLM clients
+openai>=1.23.0
+
+# Evaluation
+rouge-score==0.1.2
+
+# Utilities
+tqdm==4.66.1
+requests==2.31.0
+python-dotenv==1.0.0
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+flake8==6.1.0
+
+# Jupyter (for evaluation)
+jupyter==1.0.0
+notebook==7.0.6
+ipykernel==6.27.0
+matplotlib==3.8.2
+google-generativeai>=0.3.0

@@ -1,0 +1,706 @@
+{
+  "questions": [
+    {
+      "id": "6940eb0d4afd1e2b0400000d",
+      "type": "list",
+      "body": "What are the symptoms of glucocorticoid withdrawal syndrome after surgical remission of Cushing Syndrome?",
+      "answerReady": true
+    },
+    {
+      "id": "6936c616f9d177840e000007",
+      "type": "summary",
+      "body": "What is the role of ketogenic diet for treatment of glioblastoma?",
+      "answerReady": true
+    },
+    {
+      "id": "69528a024afd1e2b04000013",
+      "type": "factoid",
+      "body": "How many members of the serine/threonine kinase family group are present in \nthe human proteome?",
+      "answerReady": true
+    },
+    {
+      "id": "695bdb514afd1e2b04000035",
+      "type": "yesno",
+      "body": "Are women underdiagnosed with alcoholic disorders?",
+      "answerReady": true
+    },
+    {
+      "id": "6953f46a4afd1e2b0400002c",
+      "type": "factoid",
+      "body": "What is Scleral Buckle used for?",
+      "answerReady": true
+    },
+    {
+      "id": "695289334afd1e2b0400000f",
+      "type": "list",
+      "body": "Which kinases that take part in the same pathway as the kinase Pi4KIIalpha, both \nupstream and downstream?",
+      "answerReady": true
+    },
+    {
+      "id": "69528af74afd1e2b04000014",
+      "type": "summary",
+      "body": "What are Car T cells?",
+      "answerReady": true
+    },
+    {
+      "id": "6952a96b4afd1e2b04000029",
+      "type": "factoid",
+      "body": "What growth factor has been shown to affect GABAergic neurogenesis in the prenatal human brain?",
+      "answerReady": true
+    },
+    {
+      "id": "69529ea84afd1e2b04000026",
+      "type": "yesno",
+      "body": "Are vaccines a type of prophylaxis?",
+      "answerReady": true
+    },
+    {
+      "id": "6940ea534afd1e2b04000003",
+      "type": "list",
+      "body": "What are the types of Cushing Syndrome?",
+      "answerReady": true
+    },
+    {
+      "id": "6936c720f9d177840e00000b",
+      "type": "yesno",
+      "body": "Does dual checkpoint inhibition with ipilimumab (ipi) with nivolumab (nivo) improve progression free survival of newly diagnosed glioblastoma?",
+      "answerReady": true
+    },
+    {
+      "id": "695290854afd1e2b0400001e",
+      "type": "list",
+      "body": "Where does Drosophila melanogaster show homology with Homo sapiens?",
+      "answerReady": true
+    },
+    {
+      "id": "69528ff24afd1e2b04000017",
+      "type": "summary",
+      "body": "Why do we only have L-amino acids and not D-amino acids?",
+      "answerReady": true
+    },
+    {
+      "id": "69529f094afd1e2b04000027",
+      "type": "list",
+      "body": "Please list the drugs that are used as HIV prophylaxis.",
+      "answerReady": true
+    },
+    {
+      "id": "6952896f4afd1e2b04000010",
+      "type": "summary",
+      "body": "How does the environment of the womb modify the development of the embryo?",
+      "answerReady": true
+    },
+    {
+      "id": "695289c94afd1e2b04000011",
+      "type": "summary",
+      "body": "Do 2 embryos with the same genetic information show differences in their \nphenotype if the environment of the mother?s womb is different in each \npregnancy?",
+      "answerReady": true
+    },
+    {
+      "id": "6940eaa74afd1e2b04000007",
+      "type": "summary",
+      "body": "What is the role of cortisol in the human body?",
+      "answerReady": true
+    },
+    {
+      "id": "6940ea834afd1e2b04000006",
+      "type": "yesno",
+      "body": "Is Cushing Syndrome hereditary?",
+      "answerReady": true
+    },
+    {
+      "id": "695290364afd1e2b0400001a",
+      "type": "summary",
+      "body": "How does sexual activity correlate with cellular aging?",
+      "answerReady": true
+    },
+    {
+      "id": "6940ea5f4afd1e2b04000004",
+      "type": "factoid",
+      "body": "What is the difference between Cushing Syndrome and Cushing Disease?",
+      "answerReady": true
+    },
+    {
+      "id": "6952ad1f4afd1e2b0400002a",
+      "type": "factoid",
+      "body": "What is a  mechanotransducers, in realtion to ion channels?",
+      "answerReady": true
+    },
+    {
+      "id": "695290a94afd1e2b04000020",
+      "type": "yesno",
+      "body": "Is the formation of the Barr body stochastic, or is it correlated with the silencing \nof mutated X-chromosomes when extensive mutations are present?",
+      "answerReady": true
+    },
+    {
+      "id": "6940eac64afd1e2b04000009",
+      "type": "factoid",
+      "body": "What is the average diagnosis time for Cushing Syndrome?",
+      "answerReady": true
+    },
+    {
+      "id": "6940eb1a4afd1e2b0400000e",
+      "type": "yesno",
+      "body": "Is Cushing Syndrome present in dogs?",
+      "answerReady": true
+    },
+    {
+      "id": "6940ea404afd1e2b04000002",
+      "type": "list",
+      "body": "What are the common symptoms of Cushing Syndrome?",
+      "answerReady": true
+    },
+    {
+      "id": "6936c690f9d177840e000009",
+      "type": "list",
+      "body": "What is the target of lapatinib?",
+      "answerReady": true
+    },
+    {
+      "id": "6936c667f9d177840e000008",
+      "type": "summary",
+      "body": "What is the mechanism of action of brigatinib?",
+      "answerReady": true
+    },
+    {
+      "id": "6953f4354afd1e2b0400002b",
+      "type": "yesno",
+      "body": "Do cancers ever become drug dependent?",
+      "answerReady": true
+    },
+    {
+      "id": "695290194afd1e2b04000018",
+      "type": "yesno",
+      "body": "Is there any crosstalk between ERK-2 kinase and Nanog transcription factor?",
+      "answerReady": true
+    },
+    {
+      "id": "6952a8a84afd1e2b04000028",
+      "type": "summary",
+      "body": "summarizze the connection between epidermal growth factor receptor (EGFR) and fear.",
+      "answerReady": true
+    },
+    {
+      "id": "695bd8f44afd1e2b0400002f",
+      "type": "list",
+      "body": "Which are the countries most affected by leprosy?",
+      "answerReady": true
+    },
+    {
+      "id": "695291464afd1e2b04000024",
+      "type": "summary",
+      "body": "What is the mechanism by which the Lipid Droplets handle misfolded proteins \ninside the cell?",
+      "answerReady": true
+    },
+    {
+      "id": "6940ea764afd1e2b04000005",
+      "type": "list",
+      "body": "Which tests are commonly used to diagnose Cushing Syndrome and Cushing Disease?",
+      "answerReady": true
+    },
+    {
+      "id": "6936c6ddf9d177840e00000a",
+      "type": "yesno",
+      "body": "Is Dotatate PET MRI used in the diagnosis of meningioma?",
+      "answerReady": true
+    },
+    {
+      "id": "695290534afd1e2b0400001c",
+      "type": "list",
+      "body": "Which factors control the successful introduction of the sperm into the egg and \ncould be used as targets for birth control pills?",
+      "answerReady": true
+    },
+    {
+      "id": "6936c5eef9d177840e000006",
+      "type": "factoid",
+      "body": "What disease is treated with belzutifan?",
+      "answerReady": true
+    },
+    {
+      "id": "695289e94afd1e2b04000012",
+      "type": "summary",
+      "body": "How does the malnourishment of the mother impact the embryo?s sex \ndetermination?",
+      "answerReady": true
+    },
+    {
+      "id": "6936c5c0f9d177840e000005",
+      "type": "factoid",
+      "body": "What drug is tested in the ABBV-637 trial?",
+      "answerReady": false
+    },
+    {
+      "id": "6936c55cf9d177840e000003",
+      "type": "summary",
+      "body": "What is the role of valproic acid for treatment of glioblastoma?",
+      "answerReady": true
+    },
+    {
+      "id": "6952903e4afd1e2b0400001b",
+      "type": "list",
+      "body": "Please list the function of endosomal sorting complex required for transport (ESCRT), a multicomplex machinery comprising proteins that are conserved from bacteria to humans, in cellular processes.",
+      "answerReady": true
+    },
+    {
+      "id": "6940eaf44afd1e2b0400000b",
+      "type": "factoid",
+      "body": "After treatment, how long does it take for Cushing Syndrome's symptoms to go away?",
+      "answerReady": true
+    },
+    {
+      "id": "6936c584f9d177840e000004",
+      "type": "yesno",
+      "body": "Can cetuximab improve prognosis of patients with glioblastoma?",
+      "answerReady": true
+    },
+    {
+      "id": "6936c53bf9d177840e000002",
+      "type": "list",
+      "body": "Which IDH inhibitors can be used for treatment of astrocytoma, IDH mutant?",
+      "answerReady": true
+    },
+    {
+      "id": "6593d1b806a2ea257c000017",
+      "type": "list",
+      "body": "What are the uses for faecal microbiota transplantation (FMT) in children under 19 years of age?",
+      "answerReady": true
+    },
+    {
+      "id": "6940eab84afd1e2b04000008",
+      "type": "summary",
+      "body": "How is cortisol secreation regulated in the human body?",
+      "answerReady": true
+    },
+    {
+      "id": "6940eafe4afd1e2b0400000c",
+      "type": "factoid",
+      "body": "How often is leukocytosis present in patients with Cushing Disease?",
+      "answerReady": true
+    },
+    {
+      "id": "695291704afd1e2b04000025",
+      "type": "factoid",
+      "body": "Nasel Vaccines have been developed for viruses that affect what part of the body?",
+      "answerReady": true
+    },
+    {
+      "id": "6940eadc4afd1e2b0400000a",
+      "type": "summary",
+      "body": "How is Cushing Syndrome treated?",
+      "answerReady": true
+    },
+    {
+      "id": "63ac44c2c6c7d4d31b000011",
+      "type": "list",
+      "body": "Which are the most common psychiatric events associated with the consumption of cannabis?",
+      "answerReady": true
+    },
+    {
+      "id": "63adc82ec6c7d4d31b000016",
+      "type": "factoid",
+      "body": "Bepirovirsen was developed for treatment of which disease?",
+      "answerReady": true
+    },
+    {
+      "id": "63ac45e4c6c7d4d31b000015",
+      "type": "list",
+      "body": "What are the causes of depression in children under 11?",
+      "answerReady": true
+    },
+    {
+      "id": "63adc8d8c6c7d4d31b000017",
+      "type": "yesno",
+      "body": "Is Lecanemab effective for early Alzheimer?s Disease?",
+      "answerReady": true
+    },
+    {
+      "id": "63adc90bc6c7d4d31b000018",
+      "type": "summary",
+      "body": "What is geniospasm?",
+      "answerReady": true
+    },
+    {
+      "id": "63adc949c6c7d4d31b000019",
+      "type": "yesno",
+      "body": "Is Deferiprone effective for Parkinson?s Disease?",
+      "answerReady": true
+    },
+    {
+      "id": "63adc9e7c6c7d4d31b00001a",
+      "type": "summary",
+      "body": "What is the mechanism of action of Tofersen?",
+      "answerReady": true
+    },
+    {
+      "id": "63adca12c6c7d4d31b00001b",
+      "type": "factoid",
+      "body": "What is the target of Ublituximab?",
+      "answerReady": true
+    },
+    {
+      "id": "63adca61c6c7d4d31b00001c",
+      "type": "summary",
+      "body": "What is the mechanism of action of Prasinezumab?",
+      "answerReady": true
+    },
+    {
+      "id": "63adca9ec6c7d4d31b00001d",
+      "type": "yesno",
+      "body": "Is Cinpanemab effective for Early Parkinson?s Disease?",
+      "answerReady": true
+    },
+    {
+      "id": "63adcaefc6c7d4d31b00001e",
+      "type": "list",
+      "body": "DNX-2401 Virus was tested for which tumors?",
+      "answerReady": true
+    },
+    {
+      "id": "63adcb54c6c7d4d31b00001f",
+      "type": "factoid",
+      "body": "What disease is associated with chalk-stick fracture?",
+      "answerReady": true
+    },
+    {
+      "id": "6593d2e006a2ea257c000019",
+      "type": "summary",
+      "body": "Should gender-affirming surgery be performed in people under 18 years of age?",
+      "answerReady": true
+    },
+    {
+      "id": "6593d3ab06a2ea257c00001a",
+      "type": "factoid",
+      "body": "What is the percentage of women that have successfully undergone fertility treatment in the European Union?",
+      "answerReady": true
+    },
+    {
+      "id": "6593d46c06a2ea257c00001b",
+      "type": "yesno",
+      "body": "Are there clinical trials on hormonal male birth control methods?",
+      "answerReady": true
+    },
+    {
+      "id": "6593d9fe06a2ea257c00001c",
+      "type": "summary",
+      "body": "What is the best approach to evaluate learning disabilities in children?",
+      "answerReady": true
+    },
+    {
+      "id": "6593dce006a2ea257c00001d",
+      "type": "list",
+      "body": "Which pathophysiological pathways are involved in the symptom FATIGUE?",
+      "answerReady": true
+    },
+    {
+      "id": "6593de2f06a2ea257c00001e",
+      "type": "factoid",
+      "body": "What is the burden of human trypanosomiases in European hospitals?",
+      "answerReady": true
+    },
+    {
+      "id": "6593debd06a2ea257c00001f",
+      "type": "yesno",
+      "body": "Are there new European Union formal efforts to increase the number of clinical trials aimed at improving the mental health of children?",
+      "answerReady": true
+    },
+    {
+      "id": "6593e5c206a2ea257c000020",
+      "type": "list",
+      "body": "Which new treatments are investigated for cerebral palsy?",
+      "answerReady": true
+    },
+    {
+      "id": "6772bdf0592fa48873000002",
+      "type": "summary",
+      "body": "What is the cause of vestibular migrane?",
+      "answerReady": true
+    },
+    {
+      "id": "6772beef592fa48873000003",
+      "type": "factoid",
+      "body": "What is the function of a TMEM protein?",
+      "answerReady": true
+    },
+    {
+      "id": "6772c17f592fa48873000004",
+      "type": "list",
+      "body": "Please list the symptoms that differentiate mucopolysaccharidosis-plus syndrome (MPSPS) from mucopolysaccharidosis.",
+      "answerReady": true
+    },
+    {
+      "id": "6772c2d4592fa48873000005",
+      "type": "yesno",
+      "body": "Discoidin domain receptor (DDR)-1 has a crucial role in regulating vital processes, it is known to be associated with fibrosis?",
+      "answerReady": true
+    },
+    {
+      "id": "6772c43b592fa48873000006",
+      "type": "list",
+      "body": "Please list the agricultural chemicals related to Parkinson's Disease.",
+      "answerReady": true
+    },
+    {
+      "id": "6772c615592fa48873000007",
+      "type": "yesno",
+      "body": "Is morphomics associated with the study of body image or body dysmorphia?",
+      "answerReady": true
+    },
+    {
+      "id": "6772c6ae592fa48873000008",
+      "type": "list",
+      "body": "What are the treatments for Adhesive Capsulitis or \"Frozen Sholder\"",
+      "answerReady": true
+    },
+    {
+      "id": "6772c765592fa48873000009",
+      "type": "factoid",
+      "body": "What biological process is associated with Vitamin K?",
+      "answerReady": true
+    },
+    {
+      "id": "6772e4ed592fa4887300000a",
+      "type": "summary",
+      "body": "Please summarize what is known about the cause of Cutaneous T cell lymphoma",
+      "answerReady": true
+    },
+    {
+      "id": "6772e791592fa4887300000b",
+      "type": "summary",
+      "body": "What are the adverses effect of Rare earth elements (REEs) on the body?",
+      "answerReady": true
+    },
+    {
+      "id": "695290bb4afd1e2b04000021",
+      "type": "summary",
+      "body": "How important are CIRBP and Non-Homologous End Joining in protecting human \ncells against mutations that could lead to cancer?",
+      "answerReady": true
+    },
+    {
+      "id": "6777b5e1592fa4887300000d",
+      "type": "list",
+      "body": "Most common physical signs of self-harm in pre-teenagers.",
+      "answerReady": true
+    },
+    {
+      "id": "6777b80b592fa4887300000e",
+      "type": "summary",
+      "body": "When should children diagnosed with attention deficit hyperactivity disorder (ADHD) be offered pharmacological treatment?",
+      "answerReady": true
+    },
+    {
+      "id": "6777b9c5592fa4887300000f",
+      "type": "list",
+      "body": "What are the most severe adverse effects of the birth control pill?",
+      "answerReady": true
+    },
+    {
+      "id": "6777bb95592fa48873000010",
+      "type": "factoid",
+      "body": "What is the optimal age to start screening for learning disorders?",
+      "answerReady": true
+    },
+    {
+      "id": "6777bbed592fa48873000011",
+      "type": "yesno",
+      "body": "Are cardiovascular diseases more common than cancer in women between 40 and 65 years of age?",
+      "answerReady": true
+    },
+    {
+      "id": "6777bc37592fa48873000012",
+      "type": "summary",
+      "body": "Why are autoimmune diseases more common in women?",
+      "answerReady": true
+    },
+    {
+      "id": "6777bcec592fa48873000013",
+      "type": "yesno",
+      "body": "Are there any trials for a single vaccine against most allergies?",
+      "answerReady": true
+    },
+    {
+      "id": "6777be0b592fa48873000014",
+      "type": "summary",
+      "body": "What is the impact of intimate partner violence on maternal mortality?",
+      "answerReady": true
+    },
+    {
+      "id": "6777bebf592fa48873000015",
+      "type": "list",
+      "body": "Causes of borderline personality disorder.",
+      "answerReady": true
+    },
+    {
+      "id": "6777bfbe592fa48873000016",
+      "type": "summary",
+      "body": "What would be the main disadvantages of screening for dementia in asymptomatic older populations?",
+      "answerReady": true
+    },
+    {
+      "id": "6777c29b592fa48873000017",
+      "type": "summary",
+      "body": "Success of T-cell receptor (TCR) therapy in lung cancer in women.",
+      "answerReady": true
+    },
+    {
+      "id": "677e80fd592fa48873000018",
+      "type": "yesno",
+      "body": "Is focused ultrasound safe for blood brain barrier opening in treatment of glioblastoma?",
+      "answerReady": true
+    },
+    {
+      "id": "677e8136592fa48873000019",
+      "type": "summary",
+      "body": "What is VANCOUVER syndrome.",
+      "answerReady": true
+    },
+    {
+      "id": "677e816e592fa4887300001a",
+      "type": "yesno",
+      "body": "Should ganaxolone be used for treatment of status epilepticus?",
+      "answerReady": true
+    },
+    {
+      "id": "677e81be592fa4887300001b",
+      "type": "factoid",
+      "body": "What is the treatment of the helps syndrome?",
+      "answerReady": false
+    },
+    {
+      "id": "677e821c592fa4887300001c",
+      "type": "list",
+      "body": "Which four genes account to the majority of the familial ALS cases?",
+      "answerReady": true
+    },
+    {
+      "id": "677e8278592fa4887300001d",
+      "type": "yesno",
+      "body": "Is trofinetide effective for the Rett Syndrome?",
+      "answerReady": true
+    },
+    {
+      "id": "677e8319592fa4887300001e",
+      "type": "factoid",
+      "body": "What disease can be treated with vorasidenib?",
+      "answerReady": true
+    },
+    {
+      "id": "677e83f0592fa4887300001f",
+      "type": "yesno",
+      "body": "Is Asundexian superior to Apixaban for Atrial Fibrillation?",
+      "answerReady": true
+    },
+    {
+      "id": "677e8514592fa48873000020",
+      "type": "summary",
+      "body": "What is the mechanism of action of Ponsegromab?",
+      "answerReady": true
+    },
+    {
+      "id": "677e8578592fa48873000021",
+      "type": "list",
+      "body": "What are the targets of Teclistamab?",
+      "answerReady": true
+    },
+    {
+      "id": "69528fb04afd1e2b04000015",
+      "type": "factoid",
+      "body": "How many members of the tyrosine kinase family group are present in the human \nproteome?",
+      "answerReady": true
+    },
+    {
+      "id": "69528fd84afd1e2b04000016",
+      "type": "yesno",
+      "body": "Are there any proline kinases detected in the human proteome?",
+      "answerReady": true
+    },
+    {
+      "id": "695291374afd1e2b04000023",
+      "type": "yesno",
+      "body": "Can extracellular vesicles be used for therapeutic purposes in any pathogenetic \nsituation?",
+      "answerReady": true
+    },
+    {
+      "id": "695290284afd1e2b04000019",
+      "type": "yesno",
+      "body": "Are there any nucleosomes detected in the human serum?",
+      "answerReady": true
+    },
+    {
+      "id": "695290954afd1e2b0400001f",
+      "type": "list",
+      "body": "Which are the causes of the degeneration of Y-chromosome in Homo sapiens?",
+      "answerReady": true
+    },
+    {
+      "id": "695290754afd1e2b0400001d",
+      "type": "summary",
+      "body": "How can Single-cell RNA sequencing help address the heterogenicity of cancer \ncells in a tumor?",
+      "answerReady": true
+    },
+    {
+      "id": "695290cc4afd1e2b04000022",
+      "type": "summary",
+      "body": "How is Ca2+ stored in the Endoplasmic Reticulum?",
+      "answerReady": true
+    },
+    {
+      "id": "695bd8c44afd1e2b0400002e",
+      "type": "list",
+      "body": "Which are the most common viral haemorrhagic fevers?",
+      "answerReady": false
+    },
+    {
+      "id": "695bd9654afd1e2b04000031",
+      "type": "summary",
+      "body": "What is the best treatment for trauma and depression in pre-teen children?",
+      "answerReady": false
+    },
+    {
+      "id": "6593d1f206a2ea257c000018",
+      "type": "list",
+      "body": "In which childhood cancers has CAR-T cell therapy been used?",
+      "answerReady": true
+    },
+    {
+      "id": "695bdadb4afd1e2b04000034",
+      "type": "summary",
+      "body": "What is the relationship between endometriosis and mental health?",
+      "answerReady": true
+    },
+    {
+      "id": "67d2ca3e592fa48873000032",
+      "type": "yesno",
+      "body": "Can fluoxetine be prescribed in children 8 years old and over?",
+      "answerReady": false
+    },
+    {
+      "id": "695bd9c94afd1e2b04000032",
+      "type": "summary",
+      "body": "What is the pathophysiology of allucinations in people with schizophrenia?",
+      "answerReady": false
+    },
+    {
+      "id": "695bdaa54afd1e2b04000033",
+      "type": "factoid",
+      "body": "What is the estimated frequency of endometriosis?",
+      "answerReady": false
+    },
+    {
+      "id": "695bd9284afd1e2b04000030",
+      "type": "list",
+      "body": "Which are the most common causes of bacterial sepsis in children 2 to 16 years of age?",
+      "answerReady": false
+    },
+    {
+      "id": "695bd85c4afd1e2b0400002d",
+      "type": "yesno",
+      "body": "Does war increase suicide in affected populations?",
+      "answerReady": false
+    },
+    {
+      "id": "6777b471592fa4887300000c",
+      "type": "factoid",
+      "body": "What is the best non-invasive method to diagnose endometriosis?",
+      "answerReady": true
+    }
+  ]
+}

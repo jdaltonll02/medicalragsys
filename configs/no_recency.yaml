@@ -1,0 +1,152 @@
+bioasq:
+  cache_pubmed: true
+  data_dir: /home/jgibson2/projects/medicalrag_synergy14/test_data/round_3
+  pubmed_cache_dir: /data/user_data/jgibson2/bioask_pubmed_dataset/fullpipeline/pubmed_cache
+  pubmed_email: jgibson2@andrew.cmu.edu
+  question_types:
+  - yesno
+  - factoid
+  - list
+  - summary
+  rounds:
+  - 1
+  - 2
+  - 3
+  - 4
+bm25:
+  b: 0.75
+  elasticsearch_host: localhost
+  elasticsearch_port: 9200
+  index_name: medical_docs_3
+  k1: 1.5
+  min_score: 0.0
+data:
+  docs_path: /data/user_data/jgibson2/bioask_pubmed_dataset/json/pubmed_corpus.jsonl
+  embeddings_manifest: /data/user_data/jgibson2/bioask_pubmed_dataset/fullpipeline/runs/embeddings_manifest.json
+  embeddings_path: /data/user_data/jgibson2/bioask_pubmed_dataset/fullpipeline/runs/embeddings.npy
+  results_path: /data/user_data/jgibson2/bioask_pubmed_dataset/fullpipeline/runs/results.jsonl
+  run_manifest: /data/user_data/jgibson2/bioask_pubmed_dataset/fullpipeline/runs/run_manifest.json
+encoder:
+  backend: medcpt
+  batch_size: 32
+  device: cuda
+  embedding_dim: 768
+  model: ncbi/MedCPT-Query-Encoder
+  article_model: ncbi/MedCPT-Article-Encoder
+evaluation:
+  llm_judge:
+    aspects:
+    - factuality
+    - completeness
+    - relevance
+    - evidence_support
+    enabled: false
+    model: gpt-5
+    temperature: 0.0
+  metrics:
+  - recall@5
+  - recall@10
+  - recall@20
+  - recall@50
+  - precision@5
+  - precision@10
+  - mrr
+  - rouge1
+  - rouge2
+  - rougeL
+  - f1@5
+  - f1@10
+  - f1@20
+  - f1@50
+faiss:
+  index_type: IndexFlatIP
+  nprobe: 32
+  save_path: /data/user_data/jgibson2/bioask_pubmed_dataset/fullpipeline/runs/faiss.index
+fallback:
+  use_elasticsearch: true
+  use_faiss_only: false
+
+# LLM Configuration
+# Provider options: "openai", "gemini", "stub"
+# For OpenAI:
+#   - Set OPENAI_API_KEY environment variable
+#   - Optionally set OPENAI_BASE_URL and OPENAI_PROJECT_ID for custom endpoints
+# For Gemini:
+#   - Set GOOGLE_API_KEY environment variable  
+#   - Optionally set GOOGLE_CLOUD_PROJECT for GCP integration
+llm:
+  enabled: true
+  provider: openai  # Change to "gemini" to use Google Gemini instead
+  model: gpt-5  # Full model name required for CMU gateway
+  temperature: 0.0
+  max_tokens: 4096  # gpt-5 at CMU is a reasoning model; reasoning tokens consume budget before output
+  api_key: sk-FSe9sem3s0klJg7R77q4-A  # Will use OPENAI_API_KEY environment variable
+  base_url: https://ai-gateway.andrew.cmu.edu  # Will use OPENAI_BASE_URL if set (e.g., CMU AI Gateway)
+  project_id: 8bd2c6d561fa8190e42860b2a835207361d9c596262ba3541c50da670c21be13  # Will use OPENAI_PROJECT_ID if set
+  system_prompt: |
+    You are a biomedical expert answering BioASQ questions.
+    Use the provided documents as your primary source. If insufficient, use your expertise.
+    Never say information is unavailable — always provide your best answer.
+
+    FORMAT RULES (follow exactly):
+
+    YES/NO questions:
+    - Line 1: only "yes" or "no"
+    - Line 2+: 2-3 sentence explanation
+
+    FACTOID questions:
+    - Line 1: the answer entity only — bare name, number, or short phrase, no sentence, no prefix
+    - Line 2+: explanation with evidence
+    - If multiple answers, one per line (max 5), most specific first
+
+    LIST questions:
+    - One item per line, numbered, short phrases only (no sentences)
+    - 1. First item
+    - 2. Second item
+    - After the list: one sentence summary
+
+    SUMMARY questions:
+    - A single paragraph, 2-4 sentences, max 200 words
+
+logging:
+  format: json
+  level: INFO
+  output_dir: /home/jgibson2/projects/medicalrag_synergy14/logs
+mmr:
+  lambda_param: 0.95
+  recency_weight: 0.0  # disabled: no publication-date boost
+  top_k: 10
+ner:
+  confidence_threshold: 0.7
+  enabled: true
+  model: hf:d4data/biomedical-ner-all
+pipeline:
+  name: Medical RAG Pipeline
+  seed: 42
+  version: 1.0.0
+prompt:
+  include_citations: true
+  include_pub_dates: true
+  max_context_tokens: 3000
+# pubmed:
+#   api_base: https://eutils.ncbi.nlm.nih.gov/entrez/eutils/
+#   cache_ttl: 86400
+#   max_results: 100
+#   retry_attempts: 3
+#   retry_delay: 1.0
+reranker:
+  batch_size: 32
+  device: cuda
+  model: ncbi/MedCPT-Cross-Encoder
+  top_k: 50
+retrieval:
+  alpha: 0.65
+  top_k_dense: 200
+  top_k_final: 100
+  top_k_sparse: 200
+temporal:
+  enabled: false
+  strategy: soft_recency_boost
+  recency_decay: 0.05
+  hard_filter: false
+

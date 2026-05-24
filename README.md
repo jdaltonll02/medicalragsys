@@ -97,8 +97,8 @@ medicalrag_synergy14/
 
 ```bash
 # 1. Clone the repository
-git clone <repo-url>
-cd medicalrag_synergy14
+git clone git@github.com:jdaltonll02/medicalragsys.git
+cd medicalragsys
 
 # 2. Create and activate a virtual environment
 python -m venv .venv

@@ -302,6 +302,100 @@ See [Architecture](docs/ARCHITECTURE.md) for the full configuration reference.
 
 ---
 
+## Mobile App Integration
+
+The `mobile_app/` directory contains a Flutter application that submits biomedical questions to this system and displays the answers. Authentication and user profiles are handled by Firebase on the client side. The only live connection between the app and this server is the query endpoint.
+
+### 1 — Start the FastAPI server
+
+```bash
+# From the project root, with the virtual environment active:
+uvicorn src.api.app:app --host 0.0.0.0 --port 8000
+
+# To use a different config (e.g. BM25-only for faster startup):
+RAG_CONFIG=configs/bm25only.yaml uvicorn src.api.app:app --host 0.0.0.0 --port 8000
+```
+
+The server exposes the following endpoints consumed by the app:
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/query/submit` | Submit a question; returns answer + sources |
+| `GET` | `/api/v1/query/history` | Query history (returns empty list — app uses local Hive cache) |
+| `GET` | `/api/v1/health` | Liveness check |
+| `POST` | `/query` | Legacy internal endpoint (unchanged) |
+
+### 2 — Point the app at the server
+
+Edit one line in [mobile_app/lib/core/constants/api_constants.dart](mobile_app/lib/core/constants/api_constants.dart):
+
+```dart
+// Same WiFi network — use the server machine's local IP:
+static const String baseUrl = 'http://192.168.x.x:8000/api/v1';
+
+// Android emulator on the same machine as the server:
+static const String baseUrl = 'http://10.0.2.2:8000/api/v1';
+
+// iOS simulator on the same machine as the server:
+static const String baseUrl = 'http://127.0.0.1:8000/api/v1';
+
+// Production with a domain and TLS:
+static const String baseUrl = 'https://your-domain.com/api/v1';
+```
+
+To find the server machine's local IP:
+```bash
+# Linux / macOS:
+ip addr show | grep "inet " | grep -v 127.0.0.1
+
+# Windows:
+ipconfig | findstr "IPv4"
+```
+
+### 3 — Build and run the Flutter app
+
+```bash
+cd mobile_app
+flutter pub get
+flutter run          # connects to a plugged-in device or running emulator
+```
+
+### Request / Response contract
+
+**POST /api/v1/query/submit**
+
+```jsonc
+// Request
+{
+  "question": "What is the mechanism of action of metformin?",
+  "topK": 5,           // number of source documents (1–20, default 5)
+  "includeSources": true,
+  "sessionId": "optional-string"
+}
+
+// Response
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "question": "What is the mechanism of action of metformin?",
+  "answer": "Metformin primarily works by...",
+  "sources": [
+    {
+      "title": "Metformin: mechanisms in human obesity and weight loss",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/31477015/",
+      "page": "Metformin activates AMP-activated protein kinase (AMPK)...",
+      "confidence": 0.9312
+    }
+  ],
+  "createdAt": "2026-05-24T14:30:00Z",
+  "traceId": "uuid-of-pipeline-run",
+  "latencyMs": 4821
+}
+```
+
+The `Authorization: Bearer <Firebase-JWT>` header sent by the app is accepted but not validated server-side — all queries are processed regardless of token. Firebase token validation via `firebase-admin` can be added later without changing the mobile app.
+
+---
+
 ## Authors
 
 - **Professor Eric Nyberg** — Language Technology Institute, Carnegie Mellon University

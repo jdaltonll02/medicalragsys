@@ -85,44 +85,202 @@ medicalrag_synergy14/
 
 ---
 
-## Running the Pipeline
+## Environment Setup
 
-### Prerequisites
+### Requirements
 
-- Python 3.10+, FAISS, Elasticsearch 8.x
-- Pre-built FAISS index and Elasticsearch index (see [Architecture: Corpus Indexing](docs/ARCHITECTURE.md#corpus-indexing-pipeline))
-- OpenAI-compatible API key (or set `llm.provider: stub` for offline testing)
+- Python 3.10 or later
+- Elasticsearch 8.x running locally (default: `localhost:9200`)
+- A CUDA-capable GPU is strongly recommended for encoding and reranking; the pipeline falls back to CPU automatically but will be significantly slower
 
-### Run Primary Pipeline
-
-```bash
-python scripts/run_hybrid_pipeline.py --config configs/fullpipeline.yaml
-```
-
-### Run an Ablation
+### Installation
 
 ```bash
-python scripts/run_hybrid_pipeline.py --config configs/bm25only.yaml
+# 1. Clone the repository
+git clone <repo-url>
+cd medicalrag_synergy14
+
+# 2. Create and activate a virtual environment
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+
+# 3. Install the package in editable mode plus all dependencies
+pip install -e .
+pip install -r requirements.txt
+
+# 4. (Optional) Install GPU FAISS if you have a CUDA GPU
+#    Replace faiss-cpu with the GPU build:
+pip uninstall faiss-cpu
+pip install faiss-gpu
 ```
 
-### Evaluate Results
+### Elasticsearch
+
+Elasticsearch must be running before any pipeline execution that uses BM25.
 
 ```bash
-# Submission sanity check + print evaluation commands:
-bash scripts/evaluate_and_resubmit.sh results/submission.json
+# Using Docker (quickest):
+docker run -d --name es \
+  -e "discovery.type=single-node" \
+  -e "xpack.security.enabled=false" \
+  -p 9200:9200 \
+  docker.elastic.co/elasticsearch/elasticsearch:8.11.0
 
-# Phase A (requires BioASQ Java evaluator):
-java -Xmx10G -cp ./flat/BioASQEvaluation/dist/BioASQEvaluation.jar \
-     evaluation.EvaluatorTask1b -phaseA -e 5 \
-     test_data/round_3/golden_round3_testset_phaseA.json \
-     results/submission.json
-
-# Phase B:
-java -Xmx10G -cp ./flat/BioASQEvaluation/dist/BioASQEvaluation.jar \
-     evaluation.EvaluatorTask1b -phaseB -e 5 \
-     test_data/round_3/golden_round3_testset_phaseB.json \
-     results/submission.json
+# Verify it is up:
+curl http://localhost:9200
 ```
+
+The host, port, and index name are controlled by the `bm25` section of each config YAML. The defaults (`localhost:9200`, index `medical_docs_3`) match all configs in this repo.
+
+### Corpus Data
+
+The pipeline expects a PubMed corpus in JSONL format at the path set by `data.docs_path` in the config. Each line is one document:
+
+```json
+{"doc_id": "12345678", "title": "...", "abstract": "...", "pub_date": "2023-06-01"}
+```
+
+The BioASQ testsets used for evaluation are already included in `test_data/round_3/`.
+
+### LLM API Key
+
+Set your OpenAI-compatible API key as an environment variable:
+
+```bash
+export OPENAI_API_KEY="sk-..."
+
+# Optional — for a custom endpoint (e.g. CMU AI Gateway):
+export OPENAI_BASE_URL="https://ai-gateway.andrew.cmu.edu"
+export OPENAI_PROJECT_ID="your-project-id"
+```
+
+Alternatively, set `llm.api_key` directly in the config YAML. To run the pipeline without any LLM (retrieval only, no answer generation), set `llm.provider: stub` in the config or pass `LLM_PROVIDER=stub` in the environment.
+
+---
+
+## Quick Start
+
+Once the environment is set up and the corpus indices are built (see [Environment Setup](#environment-setup) and [Reproducing All Experiments](#reproducing-all-experiments) Steps 1–3), a single run looks like:
+
+```bash
+python scripts/run_hybrid_pipeline.py \
+  --config configs/fullpipeline.yaml \
+  --testset test_data/round_3/golden_round3_testset_phaseA.json \
+  --output results/submission.json
+```
+
+Swap `--config` for any file in `configs/` to run an ablation. See [Reproducing All Experiments](#reproducing-all-experiments) for the full list of commands and evaluation steps.
+
+---
+
+## Reproducing All Experiments
+
+All seven experiments can be reproduced with the Python CLI. Steps 1–3 (corpus indexing) only need to be run once; steps 4 onwards are per-experiment runs that share the same pre-built indices.
+
+### Step 1 — Encode the corpus (FAISS)
+
+```bash
+python scripts/encode_documents.py \
+  --config configs/fullpipeline.yaml \
+  --output-dir /path/to/output/dir \
+  --batch-size 32          # increase to 128-256 if you have a GPU
+```
+
+Produces `embeddings.npy` (~61 GB for 40M docs, float16), `doc_ids.json`, and `embeddings_manifest.json` in the output directory. Update `data.embeddings_path` and `faiss.save_path` in your config to point there.
+
+### Step 2 — Build the FAISS index
+
+```bash
+python scripts/build_faiss_index.py \
+  --config configs/fullpipeline.yaml
+  # add --gpu if a CUDA GPU is available (significantly faster for large corpora)
+```
+
+Produces `faiss.index` at the path set by `faiss.save_path` in the config.
+
+### Step 3 — Ingest Elasticsearch (BM25)
+
+```bash
+python scripts/ingest_elastic.py \
+  --config configs/fullpipeline.yaml \
+  --force    # recreates the index if it already exists
+```
+
+Steps 1–3 are shared across all experiments. Once the indices are built, each experiment below only runs the pipeline.
+
+### Step 4 — Run each experiment
+
+All runs use the same testset and pre-built indices. Only the `--config` and `--output` flags change.
+
+```bash
+TESTSET=test_data/round_3/golden_round3_testset_phaseA.json
+
+# Experiment 1 — Primary submission (alpha=0.65, MMR, recency=0.3)
+python scripts/run_hybrid_pipeline.py \
+  --config configs/fullpipeline.yaml \
+  --testset $TESTSET \
+  --output results/submission.json
+
+# Experiment 2 — BM25-only (alpha=0.0)
+python scripts/run_hybrid_pipeline.py \
+  --config configs/bm25only.yaml \
+  --testset $TESTSET \
+  --output results/submission_bm25only.json
+
+# Experiment 3 — Alpha 0.3
+python scripts/run_hybrid_pipeline.py \
+  --config configs/alpha03.yaml \
+  --testset $TESTSET \
+  --output results/submission_alpha03.json
+
+# Experiment 4 — MMR disabled
+python scripts/run_hybrid_pipeline.py \
+  --config configs/no_mmr.yaml \
+  --testset $TESTSET \
+  --output results/submission_no_mmr.json
+
+# Experiment 5 — Recency disabled
+python scripts/run_hybrid_pipeline.py \
+  --config configs/no_recency.yaml \
+  --testset $TESTSET \
+  --output results/submission_no_recency.json
+
+# Experiment 6 — Query normalizer fully disabled
+python scripts/run_hybrid_pipeline.py \
+  --config configs/no_normalizer.yaml \
+  --testset $TESTSET \
+  --output results/submission_no_normalizer.json
+
+# Experiment 7 — Normalizer on, lowercase disabled
+python scripts/run_hybrid_pipeline.py \
+  --config configs/no_lowercase.yaml \
+  --testset $TESTSET \
+  --output results/submission_no_lowercase.json
+```
+
+### Step 5 — Evaluate each submission
+
+Evaluation requires the official BioASQ Java evaluator JAR (`BioASQEvaluation.jar`). Replace `/path/to` with your local JAR location.
+
+```bash
+JAR=/path/to/flat/BioASQEvaluation/dist/BioASQEvaluation.jar
+GOLDEN_A=test_data/round_3/golden_round3_testset_phaseA.json
+GOLDEN_B=test_data/round_3/golden_round3_testset_phaseB.json
+
+# Phase A — document retrieval (run for each submission file)
+java -Xmx10G -cp $JAR evaluation.EvaluatorTask1b -phaseA -e 5 \
+  $GOLDEN_A results/submission.json
+
+# Phase B — answer generation (run for each submission file)
+java -Xmx10G -cp $JAR evaluation.EvaluatorTask1b -phaseB -e 5 \
+  $GOLDEN_B results/submission.json
+```
+
+The key metrics to read from the output:
+- **Phase A:** position 9 = Doc MAP (primary retrieval metric)
+- **Phase B:** position 1 = YesNo Accuracy, position 4 = Factoid MRR, position 7 = List F1
+
+> **Note on golden files:** `golden_round3_testset_phaseA.json` contains all 117 questions including 11 unanswerable ones (which have dummy `exact_answer` values to prevent the Java evaluator from crashing). `golden_round3_testset_phaseB.json` excludes those 11 questions entirely. Always use the `-phaseA` file with the `-phaseA` flag and the `-phaseB` file with the `-phaseB` flag.
 
 ---
 

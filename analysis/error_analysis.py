@@ -34,11 +34,23 @@ warnings.filterwarnings("ignore")
 
 # ── paths ──────────────────────────────────────────────────────────────────────
 ROOT       = Path(__file__).parent.parent
-SUB_PATH   = ROOT / "results" / "submission.json"
+SUB_PATH   = ROOT / "analysis" / "v2026-3-SynapFlow.json"   # actual competition submission
 FB_PATH    = ROOT / "results" / "round3_feedback.json"
+GOLDEN_PATH = ROOT / "test_data" / "round_3" / "golden_round3_testset.json"
 OUT_DIR    = ROOT / "analysis"
 PLOT_DIR   = OUT_DIR / "plots"
 PLOT_DIR.mkdir(parents=True, exist_ok=True)
+
+# ── malformed answer patterns ──────────────────────────────────────────────────
+MALFORMED_PATTERNS = [
+    r"information not available",
+    r"no specific items? identified",
+    r"not available",
+    r"the main entity is",
+    r"cannot be determined",
+    r"no answer",
+    r"\n\n",           # LLM explanation bleed-through
+]
 
 # ── style ──────────────────────────────────────────────────────────────────────
 PALETTE = {"yesno": "#4C72B0", "factoid": "#DD8452",
@@ -305,19 +317,106 @@ def ideal_metrics(sub_ideal: str, fb_ideal) -> dict:
     }
 
 
+# ── corpus coverage helpers ────────────────────────────────────────────────────
+
+def corpus_coverage_metrics(submitted_docs: list[str], feedback_docs: list[dict]) -> dict:
+    """
+    Check how many of the golden documents from expert feedback were even
+    present in the submission's candidate pool (i.e., the 549-doc corpus).
+    Unlike doc_metrics(), this measures whether retrieval was possible at all,
+    not just whether it succeeded.
+    """
+    golden_ids = {str(d["id"]) for d in feedback_docs if d.get("golden")}
+    corpus_ids = {str(d) for d in submitted_docs}          # what was in our index
+    reachable  = golden_ids & corpus_ids                   # golden docs we could have found
+
+    n_golden   = len(golden_ids)
+    n_corpus   = len(corpus_ids)
+    n_reachable = len(reachable)
+
+    coverage = n_reachable / max(1, n_golden)              # fraction of golden docs in corpus
+    return {
+        "n_golden": n_golden,
+        "n_corpus": n_corpus,
+        "n_reachable": n_reachable,
+        "coverage": coverage,                              # 0 = none of the relevant docs indexed
+    }
+
+
+def is_malformed_answer(exact_answer, qtype: str) -> tuple[bool, str]:
+    """
+    Detect known LLM failure modes in the exact_answer field.
+    Returns (is_malformed, reason).
+
+    Note: summary questions correctly have exact_answer=[] in BioASQ format;
+    we do NOT flag them as malformed.
+    """
+    ea_str = str(exact_answer).lower().strip()
+
+    # Summary: empty list is the correct BioASQ format — never malformed
+    if qtype == "summary":
+        return False, ""
+
+    # Empty / null (for non-summary types this is a failure)
+    if not exact_answer or ea_str in ("none", "[]", ""):
+        return True, "empty_answer"
+
+    # Fallback phrases
+    for pat in MALFORMED_PATTERNS:
+        if re.search(pat, ea_str):
+            return True, f"pattern:{pat.strip()}"
+
+    # Factoid-specific: answer is too long (should be a short entity, not a sentence)
+    if qtype == "factoid":
+        if isinstance(exact_answer, list) and exact_answer:
+            first = exact_answer[0]
+            if isinstance(first, list) and first:
+                text = first[0]
+            elif isinstance(first, str):
+                text = first
+            else:
+                text = ""
+            word_count = len(str(text).split())
+            if word_count > 15:
+                return True, f"factoid_too_long:{word_count}_words"
+
+    # List-specific: only one item submitted (usually means hallucination or fallback)
+    if qtype == "list":
+        if isinstance(exact_answer, list) and len(exact_answer) == 1:
+            item = exact_answer[0]
+            item_str = str(item[0] if isinstance(item, list) else item).lower()
+            for pat in MALFORMED_PATTERNS:
+                if re.search(pat, item_str):
+                    return True, f"list_single_fallback"
+
+    return False, ""
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # main analysis
 # ══════════════════════════════════════════════════════════════════════════════
 
 def analyse():
-    sub_data = load_json(SUB_PATH)
-    fb_data  = load_json(FB_PATH)
+    sub_data    = load_json(SUB_PATH)
+    fb_data     = load_json(FB_PATH)
+    golden_data = load_json(GOLDEN_PATH)
 
-    sub_map = {q["id"]: q for q in sub_data["questions"]}
-    fb_map  = {q["id"]: q for q in fb_data["questions"]}
+    sub_map    = {q["id"]: q for q in sub_data["questions"]}
+    fb_map     = {q["id"]: q for q in fb_data["questions"]}
+    golden_map = {q["id"]: q for q in golden_data["questions"]}
 
     matched_ids = sorted(set(sub_map) & set(fb_map))
-    print(f"Matched questions: {len(matched_ids)} / {len(fb_map)} feedback / {len(sub_map)} submitted")
+    missing_ids = sorted(set(fb_map) - set(sub_map))       # questions never submitted
+    print(f"Submitted : {len(sub_map)} questions")
+    print(f"Feedback  : {len(fb_map)} questions")
+    print(f"Matched   : {len(matched_ids)}")
+    print(f"Missing   : {len(missing_ids)} (questions not submitted at all)")
+
+    # ── collect all corpus doc IDs (the 549-doc pool) ─────────────────────────
+    corpus_doc_ids = set()
+    for q in sub_data["questions"]:
+        corpus_doc_ids.update(str(d) for d in q.get("documents", []))
+    print(f"Unique docs in corpus: {len(corpus_doc_ids)}")
 
     per_question = []
 
@@ -338,13 +437,22 @@ def analyse():
         dm = doc_metrics(sq.get("documents", []), fq.get("documents", []))
         row.update({f"doc_{k}": v for k, v in dm.items()})
 
+        # ── corpus coverage: how many golden docs were even indexable? ─────────
+        cc = corpus_coverage_metrics(list(corpus_doc_ids), fq.get("documents", []))
+        row.update({f"corpus_{k}": v for k, v in cc.items()})
+
         # ── snippet retrieval ─────────────────────────────────────────────────
         sm = snippet_metrics(sq.get("snippets", []), fq.get("snippets", []))
         row.update({f"snip_{k}": v for k, v in sm.items()})
 
+        # ── malformed answer detection ─────────────────────────────────────────
+        sub_ea = sq.get("exact_answer")
+        malformed, malformed_reason = is_malformed_answer(sub_ea, qtype)
+        row["answer_malformed"]        = malformed
+        row["answer_malformed_reason"] = malformed_reason
+
         # ── answer quality ────────────────────────────────────────────────────
         if answer_ready:
-            sub_ea = sq.get("exact_answer")
             fb_ea  = fq.get("exact_answer")
             sub_ia = sq.get("ideal_answer", "")
             fb_ia  = fq.get("ideal_answer")
@@ -367,6 +475,20 @@ def analyse():
 
         per_question.append(row)
 
+    # ── missing question summary ───────────────────────────────────────────────
+    missing_rows = []
+    for qid in missing_ids:
+        fq = fb_map[qid]
+        gq = golden_map.get(qid, {})
+        missing_rows.append({
+            "id":           qid,
+            "type":         fq.get("type", "unknown"),
+            "answer_ready": fq.get("answerReady", False),
+            "body":         fq.get("body", ""),
+            "golden_docs":  len([d for d in fq.get("documents", []) if d.get("golden")]),
+        })
+    missing_df = pd.DataFrame(missing_rows) if missing_rows else pd.DataFrame()
+
     df = pd.DataFrame(per_question)
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -379,15 +501,52 @@ def analyse():
 
     metrics = {
         "summary": {
-            "total_questions_feedback": len(fb_map),
+            "total_questions_feedback":  len(fb_map),
             "total_questions_submitted": len(sub_map),
-            "matched_questions": len(matched_ids),
-            "coverage_pct": 100 * len(matched_ids) / max(1, len(fb_map)),
+            "matched_questions":         len(matched_ids),
+            "missing_questions":         len(missing_ids),
+            "coverage_pct":              100 * len(matched_ids) / max(1, len(fb_map)),
+            "corpus_unique_docs":        len(corpus_doc_ids),
         },
+        "corpus_coverage": {},
         "document_retrieval": {},
         "snippet_retrieval": {},
         "answer_quality": {},
+        "malformed_answers": {},
     }
+
+    # ── corpus coverage aggregates ─────────────────────────────────────────────
+    metrics["corpus_coverage"]["overall_coverage"]       = mean_nonnull(df["corpus_coverage"])
+    metrics["corpus_coverage"]["total_golden_docs"]      = int(df["corpus_n_golden"].sum())
+    metrics["corpus_coverage"]["total_reachable_docs"]   = int(df["corpus_n_reachable"].sum())
+    metrics["corpus_coverage"]["questions_zero_coverage"]= int((df["corpus_coverage"] == 0.0).sum())
+    metrics["corpus_coverage"]["questions_any_coverage"] = int((df["corpus_coverage"] > 0.0).sum())
+    for qtype in ("yesno", "factoid", "list", "summary"):
+        sub_df = df[df["type"] == qtype]
+        metrics["corpus_coverage"][f"{qtype}_coverage"] = mean_nonnull(sub_df["corpus_coverage"])
+
+    # ── malformed answer aggregates ────────────────────────────────────────────
+    metrics["malformed_answers"]["total_malformed"]       = int(df["answer_malformed"].sum())
+    metrics["malformed_answers"]["total_submitted"]       = len(df)
+    metrics["malformed_answers"]["malformed_pct"]         = 100 * df["answer_malformed"].mean()
+    for qtype in ("yesno", "factoid", "list", "summary"):
+        sub_df = df[df["type"] == qtype]
+        metrics["malformed_answers"][f"{qtype}_malformed"] = int(sub_df["answer_malformed"].sum())
+        metrics["malformed_answers"][f"{qtype}_total"]     = len(sub_df)
+    # Reason breakdown
+    reasons = df[df["answer_malformed"]]["answer_malformed_reason"].value_counts().to_dict()
+    metrics["malformed_answers"]["reason_counts"] = {str(k): int(v) for k, v in reasons.items()}
+
+    # ── missing questions summary ──────────────────────────────────────────────
+    if not missing_df.empty:
+        metrics["missing_questions"] = {
+            "total": len(missing_df),
+            "by_type": missing_df["type"].value_counts().to_dict(),
+            "answer_ready_missing": int(missing_df["answer_ready"].sum()),
+            "total_golden_docs_missed": int(missing_df["golden_docs"].sum()),
+        }
+    else:
+        metrics["missing_questions"] = {"total": 0}
 
     # overall document retrieval
     for metric in ("precision", "recall", "f1", "mrr"):
@@ -500,6 +659,8 @@ def analyse():
     _plot_doc_count_analysis(df)
     _plot_error_heatmap(df)
     _plot_f1_by_question_length(df)
+    _plot_corpus_coverage(df, metrics)
+    _plot_missing_and_malformed(missing_df, df, metrics)
 
     print(f"\nAll plots saved → {PLOT_DIR}/")
     return metrics, df
@@ -873,6 +1034,120 @@ def _plot_f1_by_question_length(df: pd.DataFrame):
     _savefig("12_f1_by_question_length")
 
 
+def _plot_corpus_coverage(df: pd.DataFrame, metrics: dict):
+    """
+    Two panels showing the corpus coverage problem:
+    1. Per-question corpus coverage (fraction of golden docs in our 549-doc index)
+    2. Stacked bar: golden docs reachable vs. unreachable by question type
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    # Panel 1: histogram of corpus_coverage per question
+    ax = axes[0]
+    for qtype in ["yesno", "factoid", "list", "summary"]:
+        sub = df[df["type"] == qtype]["corpus_coverage"].dropna()
+        ax.hist(sub, bins=20, range=(0, 1), alpha=0.65, label=qtype.capitalize(),
+                color=PALETTE[qtype])
+    ax.set_xlabel("Fraction of Golden Docs in Corpus")
+    ax.set_ylabel("Number of Questions")
+    ax.set_title("Corpus Coverage per Question\n(fraction of relevant docs that were indexed)",
+                 fontweight="bold")
+    ax.legend(fontsize=9)
+    total_zero = metrics["corpus_coverage"].get("questions_zero_coverage", 0)
+    total_q    = metrics["summary"]["matched_questions"]
+    ax.text(0.98, 0.95, f"{total_zero}/{total_q} questions\nhave ZERO coverage",
+            transform=ax.transAxes, ha="right", va="top", fontsize=10,
+            color="red", fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.3", fc="mistyrose", ec="red", alpha=0.8))
+
+    # Panel 2: stacked bar — reachable vs unreachable golden docs per type
+    ax = axes[1]
+    types = ["yesno", "factoid", "list", "summary"]
+    reachable = []
+    unreachable = []
+    for t in types:
+        sub = df[df["type"] == t]
+        r = sub["corpus_n_reachable"].sum()
+        g = sub["corpus_n_golden"].sum()
+        reachable.append(r)
+        unreachable.append(g - r)
+    x = np.arange(len(types))
+    ax.bar(x, reachable,   label="Reachable (in corpus)", color="#55A868")
+    ax.bar(x, unreachable, bottom=reachable, label="Unreachable (not indexed)", color="#C44E52", alpha=0.8)
+    ax.set_xticks(x)
+    ax.set_xticklabels([t.capitalize() for t in types])
+    ax.set_ylabel("Number of Golden Documents")
+    ax.set_title("Golden Documents: Reachable vs. Not Indexed\n(by question type)",
+                 fontweight="bold")
+    ax.legend(fontsize=9)
+    total_r = metrics["corpus_coverage"]["total_reachable_docs"]
+    total_g = metrics["corpus_coverage"]["total_golden_docs"]
+    ax.text(0.98, 0.95, f"Overall: {total_r}/{total_g}\n({100*total_r/max(1,total_g):.1f}%) reachable",
+            transform=ax.transAxes, ha="right", va="top", fontsize=10,
+            bbox=dict(boxstyle="round,pad=0.3", fc="lightyellow", ec="orange", alpha=0.9))
+
+    plt.tight_layout()
+    _savefig("13_corpus_coverage")
+
+
+def _plot_missing_and_malformed(missing_df: pd.DataFrame, df: pd.DataFrame, metrics: dict):
+    """
+    Two panels:
+    1. Missing questions by type (never submitted)
+    2. Malformed answers by type and reason
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    # Panel 1: missing questions by type
+    ax = axes[0]
+    types = ["yesno", "factoid", "list", "summary"]
+    missing_by_type = metrics.get("missing_questions", {}).get("by_type", {})
+    submitted_by_type = df["type"].value_counts().to_dict()
+    total_by_type = {t: missing_by_type.get(t, 0) + submitted_by_type.get(t, 0) for t in types}
+
+    missing_vals   = [missing_by_type.get(t, 0) for t in types]
+    submitted_vals = [submitted_by_type.get(t, 0) for t in types]
+    x = np.arange(len(types))
+    ax.bar(x, submitted_vals, label="Submitted", color="#4C72B0")
+    ax.bar(x, missing_vals, bottom=submitted_vals, label="Not submitted", color="#C44E52", alpha=0.8)
+    ax.set_xticks(x)
+    ax.set_xticklabels([t.capitalize() for t in types])
+    ax.set_ylabel("Number of Questions")
+    total_missing = metrics.get("missing_questions", {}).get("total", 0)
+    total_all = metrics["summary"]["total_questions_feedback"]
+    ax.set_title(f"Question Coverage: {total_all - total_missing}/{total_all} submitted "
+                 f"({100*(total_all-total_missing)/total_all:.0f}%)", fontweight="bold")
+    ax.legend(fontsize=9)
+    for xi, (s, m) in enumerate(zip(submitted_vals, missing_vals)):
+        total = s + m
+        ax.text(xi, total + 0.3, f"{100*s/max(1,total):.0f}%",
+                ha="center", fontsize=9, color="#1a5276")
+
+    # Panel 2: malformed answers by reason
+    ax = axes[1]
+    mal = metrics.get("malformed_answers", {})
+    reason_counts = mal.get("reason_counts", {})
+    if reason_counts:
+        labels = [r[:30] for r in reason_counts.keys()]
+        counts = list(reason_counts.values())
+        colors_bar = plt.cm.Set2(np.linspace(0, 0.8, len(labels)))
+        bars = ax.barh(labels, counts, color=colors_bar)
+        ax.set_xlabel("Number of Questions")
+        ax.set_title(f"Malformed Answer Breakdown\n"
+                     f"({mal.get('total_malformed',0)}/{mal.get('total_submitted',0)} answers affected)",
+                     fontweight="bold")
+        for bar, cnt in zip(bars, counts):
+            ax.text(bar.get_width() + 0.1, bar.get_y() + bar.get_height() / 2,
+                    str(cnt), va="center", fontsize=9)
+    else:
+        ax.text(0.5, 0.5, "No malformed answers detected", ha="center", va="center",
+                transform=ax.transAxes, fontsize=12)
+        ax.set_title("Malformed Answer Breakdown", fontweight="bold")
+
+    plt.tight_layout()
+    _savefig("14_missing_and_malformed")
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
@@ -883,6 +1158,48 @@ if __name__ == "__main__":
     sr = metrics["snippet_retrieval"]
     aq = metrics["answer_quality"]
     et = metrics["error_taxonomy"]
+
+    cc  = metrics["corpus_coverage"]
+    mq  = metrics.get("missing_questions", {})
+    mal = metrics.get("malformed_answers", {})
+
+    print("\n" + "═" * 60)
+    print("  SUBMISSION COVERAGE")
+    print("═" * 60)
+    print(f"  Submitted     : {metrics['summary']['total_questions_submitted']} / "
+          f"{metrics['summary']['total_questions_feedback']} questions "
+          f"({metrics['summary']['coverage_pct']:.1f}%)")
+    print(f"  Missing       : {mq.get('total', 0)} questions never submitted")
+    if mq.get("by_type"):
+        for t, n in mq["by_type"].items():
+            print(f"    {t:<10}: {n} missing")
+
+    print("\n" + "═" * 60)
+    print("  CORPUS COVERAGE (root cause #1)")
+    print("═" * 60)
+    print(f"  Corpus size   : {metrics['summary']['corpus_unique_docs']} unique documents")
+    print(f"  Golden docs   : {cc['total_golden_docs']} needed across all questions")
+    print(f"  Reachable     : {cc['total_reachable_docs']} "
+          f"({100*cc['total_reachable_docs']/max(1,cc['total_golden_docs']):.1f}%) were in corpus")
+    print(f"  Zero coverage : {cc['questions_zero_coverage']} questions had NO golden doc in corpus")
+    print(f"  Any coverage  : {cc['questions_any_coverage']} questions had ≥1 golden doc in corpus")
+    for t in ("yesno", "factoid", "list", "summary"):
+        cov = cc.get(f"{t}_coverage", 0) or 0
+        print(f"    {t:<10}: avg corpus coverage {cov:.3f}")
+
+    print("\n" + "═" * 60)
+    print("  MALFORMED ANSWERS (root cause #3)")
+    print("═" * 60)
+    print(f"  Malformed     : {mal.get('total_malformed', 0)} / "
+          f"{mal.get('total_submitted', 0)} submitted answers ({mal.get('malformed_pct', 0):.1f}%)")
+    for t in ("yesno", "factoid", "list", "summary"):
+        m = mal.get(f"{t}_malformed", 0)
+        n = mal.get(f"{t}_total", 0)
+        print(f"    {t:<10}: {m}/{n}")
+    if mal.get("reason_counts"):
+        print("  Reason breakdown:")
+        for reason, cnt in sorted(mal["reason_counts"].items(), key=lambda x: -x[1]):
+            print(f"    {reason:<40}: {cnt}")
 
     print("\n" + "═" * 60)
     print("  DOCUMENT RETRIEVAL")

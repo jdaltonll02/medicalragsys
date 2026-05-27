@@ -65,9 +65,9 @@ The BioASQ evaluator outputs 10 values for Phase B covering all question types.
 | Config | Alpha | MMR | Recency | Normalizer | Doc MAP | YesNo Acc | Factoid MRR | List F1 |
 |---|---|---|---|---|---|---|---|---|
 | **no_normalizer** | 0.65 | ✓ | 0.3 | **off** | **0.1066** ★ | **1.0000** ★ | 0.2857 | 0.3114 |
-| bm25only | 0.0 | ✓ | 0.3 | on | 0.0978 | — | — | — |
+| bm25only | 0.0 | ✓ | 0.3 | on | 0.0978 | 0.8636 | 0.2381 | **0.3241** ★ |
 | alpha03 | 0.3 | ✓ | 0.3 | on | 0.0978\* | 0.8636\* | 0.2380\* | 0.2857\* |
-| **fullpipeline** (primary) | 0.65 | ✓ | 0.3 | on | 0.0894 | 0.9545 | **0.3810** ★ | **0.3204** ★ |
+| **fullpipeline** (primary) | 0.65 | ✓ | 0.3 | on | 0.0894 | 0.9545 | **0.3810** ★ | 0.3204 |
 | no_recency | 0.65 | ✓ | 0.0 | on | 0.0894 | 0.9545 | 0.2857 | 0.3200 |
 | no_mmr | 0.65 | ✗ | — | on | 0.0894 | 0.9091 | 0.2381 | 0.2571 |
 | **no_lowercase** | 0.65 | ✓ | 0.3 | case only | 0.0894 | 0.9091 | 0.1905 ⬇ | 0.2870 |
@@ -110,7 +110,7 @@ The BioASQ evaluator outputs 10 values for Phase B covering all question types.
 
 ## Phase B Results
 
-> bm25only Phase B pending re-evaluation. alpha03 Phase B values marked `*` are from the original evaluation run.
+> alpha03 Phase B values marked `*` are from the original evaluation run; full re-evaluation pending.
 
 ### Yes/No Questions
 
@@ -121,8 +121,8 @@ The BioASQ evaluator outputs 10 values for Phase B covering all question types.
 | no_recency | 0.9545 | 0.9494 | 0.9655 | 0.9333 |
 | no_lowercase | 0.9091 | 0.9018 | 0.9286 | 0.8750 |
 | no_mmr | 0.9091 | 0.9018 | 0.9286 | 0.8750 |
+| bm25only | 0.8636 | 0.8611 | 0.8800 | 0.8421 |
 | alpha03 | 0.8636\* | — | — | — |
-| bm25only | — | — | — | — |
 
 ### Factoid Questions
 
@@ -131,22 +131,22 @@ The BioASQ evaluator outputs 10 values for Phase B covering all question types.
 | **fullpipeline** | **0.3810** | **0.3810** | **0.3810** |
 | no_normalizer | 0.2857 | 0.2857 | 0.2857 |
 | no_recency | 0.2857 | 0.2857 | 0.2857 |
+| bm25only | 0.2381 | 0.2381 | 0.2381 |
 | no_mmr | 0.2381 | 0.2381 | 0.2381 |
 | alpha03 | — | — | 0.2380\* |
-| bm25only | — | — | — |
 | no_lowercase | 0.1905 | 0.1905 | 0.1905 ⬇ |
 
 ### List Questions
 
 | Config | Mean Precision | Mean Recall | Mean F-Measure |
 |---|---|---|---|
-| fullpipeline | 0.3212 | 0.4520 | **0.3204** |
+| **bm25only** | 0.3173 | 0.4502 | **0.3241** ★ |
+| fullpipeline | **0.3212** | 0.4520 | 0.3204 |
 | no_recency | 0.3169 | **0.4633** | 0.3200 |
 | no_normalizer | 0.3104 | 0.4388 | 0.3114 |
 | no_lowercase | 0.2817 | 0.4237 | 0.2870 |
 | alpha03 | — | — | 0.2857\* |
 | no_mmr | 0.2434 | 0.4006 | 0.2571 |
-| bm25only | — | — | — |
 
 ---
 
@@ -168,7 +168,7 @@ The BioASQ evaluator outputs 10 values for Phase B covering all question types.
 
 **Submission file:** `results/submission.json`
 
-This is the best Phase B configuration overall. It achieves the highest factoid MRR/strict/lenient accuracy across all experiments (0.3810), as well as the highest list F1 (0.3204). The improved pipeline also shows strict and lenient factoid accuracy are now equal, indicating more precise answer extraction.
+This is the best configuration for factoid questions, achieving the highest factoid strict accuracy, lenient accuracy, and MRR across all experiments (0.3810). Strict and lenient factoid accuracy are now equal, indicating precise answer extraction without hedging. For list questions, BM25-only (0.3241) narrowly exceeds fullpipeline (0.3204) — see Finding 1.
 
 ---
 
@@ -180,11 +180,15 @@ This is the best Phase B configuration overall. It achieves the highest factoid 
 
 **Phase A — Snippet:** MPrec 0.0716 | MRec 0.0231 | MF1 0.0308 | MAP 0.0523 | GMAP 2.06×10⁻⁴
 
-**Phase B:** Pending re-evaluation.
+**Phase B — Yes/No:** Acc 0.8636 | Macro F1 0.8611 | F1-yes 0.8800 | F1-no 0.8421
+
+**Phase B — Factoid:** Strict 0.2381 | Lenient 0.2381 | MRR 0.2381
+
+**Phase B — List:** Precision 0.3173 | Recall 0.4502 | F1 **0.3241** ★ (best List F1 across all experiments)
 
 **Submission file:** `results/submission_bm25only.json`
 
-**Finding:** BM25-only achieves the second-highest Phase A document MAP (0.0978, after no_normalizer's 0.1066) and the highest document Mean Precision (0.1385) after no_normalizer. BM25 keyword matching is a strong recall signal for BioASQ Synergy 14 questions, which frequently use exact biomedical terminology. Phase B results pending re-run.
+**Finding:** BM25-only achieves the second-highest Phase A document MAP (0.0978) and, surprisingly, the **highest List F1 across all experiments (0.3241)**. This exceeds even the fullpipeline's 0.3204, suggesting that BM25's strong keyword recall for list questions — which often contain multiple named entities — outweighs the advantage that dense retrieval brings for semantic diversity. However, YesNo accuracy (0.8636) and Factoid MRR (0.2381) are both substantially lower than fullpipeline (0.9545 and 0.3810 respectively), confirming that BM25 alone is not sufficient for answer types requiring semantic understanding.
 
 ---
 
@@ -284,53 +288,89 @@ This is the best Phase B configuration overall. It achieves the highest factoid 
 
 ## Findings and Analysis
 
-### 1. Dense-Sparse Tradeoff (alpha)
+### 1. Retrieval Strategy Is Question-Type Dependent
 
-The relationship between dense retrieval weight and evaluation metric is non-monotonic:
+The most important overall finding is that no single retrieval configuration dominates across all question types. The optimal strategy differs by answer type:
 
-- At alpha=0.0 and alpha=0.3: Phase A document MAP is maximized (BM25 dominates), but Phase B answer quality is significantly lower.
-- At alpha=0.65: Phase A MAP drops slightly, but Phase B improves substantially — YesNo accuracy rises, and Factoid MRR reaches 0.3810 (the highest across all experiments).
+| Question type | Best config | Best value | Key driver |
+|---|---|---|---|
+| Yes/No Accuracy | no_normalizer | 1.0000 | Raw query improves BM25 + MedCPT recall |
+| Factoid MRR | fullpipeline | 0.3810 | Dense retrieval + recency boost surfaces the right entity |
+| List F1 | bm25only | 0.3241 | Exact keyword matching captures multi-entity lists |
+| Doc MAP | no_normalizer | 0.1066 | Raw query maximises Phase A recall |
 
-**Interpretation:** BM25 is better at surface-form recall for BioASQ queries (which often contain exact biomedical terminology). MedCPT dense retrieval adds semantic matching that introduces documents with more contextually relevant information for answer generation, even if their abstract-level keyword overlap is lower.
+**List F1 with BM25-only (0.3241) exceeds fullpipeline (0.3204).** List questions in BioASQ Synergy 14 typically ask for multiple named entities (genes, drugs, organisms) that appear verbatim in abstracts. BM25's exact keyword matching retrieves these more reliably than dense retrieval, which generalises semantically and may miss the precise surface form. This makes BM25 the strongest retrieval strategy for list questions in this domain, despite underperforming on Yes/No and Factoid.
 
-### 2. Cross-Encoder Reranker Dominance
+### 2. Dense Retrieval Helps Factoid and YesNo, Hurts Phase A MAP
 
-The MedCPT cross-encoder (`ncbi/MedCPT-Cross-Encoder`) is the most impactful single component. The equality of alpha=0.0 and alpha=0.3 results directly shows this: once the reranker re-orders the candidate set, the initial retrieval mix is largely erased, provided the relevant documents were recalled at all.
+Increasing alpha from 0.0 (BM25-only) to 0.65 (fullpipeline):
+- **Factoid MRR:** 0.2381 → 0.3810 (+0.143) — the largest single improvement of any configuration change
+- **YesNo Accuracy:** 0.8636 → 0.9545 (+0.091)
+- **List F1:** 0.3241 → 0.3204 (−0.004) — slight regression; BM25 is better for lists
+- **Doc MAP:** 0.0978 → 0.0894 (−0.009) — BM25 is better for Phase A document recall
 
-This has a strong architectural implication: optimizing the recall set (what goes into the top 100) matters more than optimizing the ranking within it.
+Dense retrieval adds semantic matching that retrieves documents containing the correct answer entity even when the terminology differs from the question. This specifically benefits factoid questions (single entity, precision matters) and yes/no questions (evidence of presence/absence rather than keyword co-occurrence). For list questions, the breadth of BM25 keyword recall is more valuable than semantic precision.
 
-### 3. MMR Is the Single Most Important Component for Phase B
+### 3. Cross-Encoder Reranker Dominance and the Alpha Insensitivity Zone
 
-Disabling MMR produces the largest single-component Phase B degradation: Factoid MRR drops from 0.3810 to 0.2381 (−0.143) and List F1 from 0.3204 to 0.2571 (−0.063). Without MMR, the cross-encoder's top-10 documents are dominated by nearly-duplicate abstracts about the same subtopic, leaving other aspects of the answer without supporting evidence.
+The MedCPT cross-encoder (`ncbi/MedCPT-Cross-Encoder`) is the most impactful single component. The equality of alpha=0.0 and alpha=0.3 results directly demonstrates this: once the reranker re-orders the top-100 candidate set, the initial retrieval mix is largely erased. At low alpha, BM25 dominates the recall pool, and the cross-encoder then applies the same relevance reranking regardless of whether FAISS contributed. Only at alpha=0.65 does FAISS meaningfully reshape which documents enter the top 100, producing measurably different final results.
 
-### 4. Recency Is Factoid-Specific
+**Architectural implication:** Optimising the recall set (which 100 documents enter the reranker) matters more than optimising the initial ranking within that set.
 
-The recency boost has no effect on Yes/No questions (both full and no_recency score 0.9545) and minimal effect on list questions, but provides a substantial lift for factoid questions (+0.095 MRR). BioASQ Synergy 14 factoid questions frequently ask for a specific entity identified in recent literature.
+### 4. MMR Is the Most Impactful Single Component for Phase B
 
-### 5. Phase A and Phase B Have Conflicting Objectives
+Disabling MMR produces the largest Phase B degradation of any configuration change tested:
 
-There is a fundamental tension between the two phases:
+| Metric | fullpipeline (MMR on) | no_mmr (MMR off) | Change |
+|---|---|---|---|
+| YesNo Accuracy | 0.9545 | 0.9091 | −0.045 |
+| Factoid MRR | 0.3810 | 0.2381 | **−0.143** |
+| List F1 | 0.3204 | 0.2571 | −0.063 |
 
-- Configurations that maximize Phase A MAP (no_normalizer, bm25only) tend to retrieve topically focused, keyword-matched documents — good for the evaluation metric, but potentially redundant for the LLM.
-- Configurations that maximize Phase B (fullpipeline) favor semantic diversity and recency — introducing documents that contain the answer entity even if their abstract-level relevance score is lower.
+Without MMR, the cross-encoder's top-10 documents tend to be nearly-duplicate abstracts about the same subtopic, giving the LLM insufficient coverage across the answer space. MMR's diversity term forces selection across different subtopics, which is especially critical for multi-part factoid and list questions where the correct answer may be distributed across several documents. Note that Phase A metrics are identical with and without MMR — MMR affects only the documents passed to the LLM, not the retrieval pool used for Phase A evaluation.
 
-The primary configuration (`fullpipeline.yaml`) prioritizes Phase B, which reflects the downstream task objective.
+### 5. Recency Boost Is Factoid-Specific and Has No Effect on Yes/No
 
-### 6. Phase A Document Metrics Are Identical Across Four Configs
+| Metric | fullpipeline (recency=0.3) | no_recency (recency=0.0) | Change |
+|---|---|---|---|
+| YesNo Accuracy | 0.9545 | 0.9545 | 0.000 |
+| Factoid MRR | 0.3810 | 0.2857 | **−0.095** |
+| List Recall | 0.4520 | 0.4633 | +0.011 |
+| List F1 | 0.3204 | 0.3200 | −0.004 |
 
-fullpipeline, no_recency, no_mmr, and no_lowercase all produce exactly the same Phase A document metrics (MPrec 0.1282, MRec 0.0998, MF1 0.0887, MAP 0.0894, GMAP 0.0013). This is expected: Phase A evaluates the set of documents returned by the system across all queries. These four configs share the same retrieval pipeline (hybrid fusion at alpha=0.65 + MedCPT cross-encoder reranking) — only the final MMR/recency step differs, and that step selects which documents go to the LLM, not which documents are counted in Phase A.
+The recency boost has zero effect on Yes/No questions and negligible effect on list questions, but drops Factoid MRR by 0.095. BioASQ Synergy 14 factoid questions frequently ask for entities reported in recent clinical trials, drug approvals, or emerging research — questions where a 2023 or 2024 paper is far more likely to contain the correct answer than a 2010 paper on the same general topic.
+
+Interestingly, removing the recency boost slightly increases list recall (0.4633 vs 0.4520) without improving list F1. Without recency weighting, MMR selects a more temporally uniform set of documents, which broadens the range of list items retrieved but does not improve answer precision enough to raise F1.
+
+### 6. Phase A Document Metrics Are Identical Across Four Configurations
+
+fullpipeline, no_recency, no_mmr, and no_lowercase all produce exactly the same Phase A document metrics (MPrec 0.1282, MRec 0.0998, MF1 0.0887, MAP 0.0894, GMAP 0.0013). This is structurally expected: all four share the same retrieval pipeline (hybrid fusion at alpha=0.65 followed by MedCPT cross-encoder reranking). Only the final MMR/recency selection step differs, and that step determines which documents go to the LLM — not the full set of documents returned across all queries, which is what Phase A evaluates.
 
 ### 7. Query Normalizer Harms Phase A; Its Lowercase Step Is Critical for Phase B
 
-The two normalizer ablations together reveal a complex and counterintuitive interaction:
+The two normalizer ablations reveal a complex and counterintuitive interaction:
 
-- **Removing the normalizer entirely** raises Phase A MAP from 0.0894 to 0.1066 (19% improvement, new best) and achieves perfect YesNo accuracy. The raw query is better for both Elasticsearch and the MedCPT query encoder (trained on naturally-cased PubMed queries).
-- **Removing only the lowercase step** is the worst configuration tested for Phase B — Factoid MRR 0.1905, lower than every other configuration including BM25-only. Phase A MAP is unchanged at 0.0894.
-- The difference between these two conditions is that no_normalizer also preserves punctuation. Punctuation characters in raw BioASQ questions (`?`, parentheses) appear to provide useful signal to the MedCPT encoder that is lost when punctuation is removed but case is retained.
+| Config | Doc MAP | Factoid MRR | YesNo Acc |
+|---|---|---|---|
+| fullpipeline (normalizer on, lowercase on) | 0.0894 | **0.3810** | 0.9545 |
+| no_normalizer (normalizer fully off) | **0.1066** | 0.2857 | **1.0000** |
+| no_lowercase (normalizer on, lowercase off) | 0.0894 | 0.1905 ⬇ | 0.9091 |
 
-**Root cause of no_lowercase failure:** NER extracts entities in their original cased form (`"BRCA1"`, `"COVID-19"`). These are passed to Elasticsearch as BM25 boost terms. The standard analyzer has already lowercased all index tokens, so cased boost terms silently produce zero matches — breaking entity boosting entirely.
+- **Removing the normalizer entirely** raises Phase A MAP by 19% (0.0894 → 0.1066) and achieves perfect YesNo accuracy (1.0000). The raw query contains naturally-cased biomedical terms and punctuation that Elasticsearch's own standard analyzer and the MedCPT query encoder handle better than a pre-normalised lowercase version.
+- **Removing only the lowercase step** is the worst configuration tested for factoid questions (MRR 0.1905 — lower than even BM25-only). Phase A MAP is unchanged because document retrieval is unaffected, but factoid answer quality collapses.
+- **Root cause of no_lowercase failure:** NER extracts entities in their original cased form (`"BRCA1"`, `"COVID-19"`). These are passed to Elasticsearch as BM25 boost terms. The standard analyzer has already lowercased all index tokens, so cased boost terms produce zero matches — silently breaking entity boosting entirely. The fullpipeline avoids this by lowercasing entity terms before boosting. The no_normalizer config avoids it by not applying NER-based boosting at all. Only no_lowercase falls into the broken intermediate state.
 
-**Practical implication:** The normalizer's lowercase step is a prerequisite for entity boosting to work correctly. If entity boosting is retained, lowercase must also be applied. If the normalizer is removed entirely, entity boosting should also be disabled.
+**Practical implication:** The normalizer's lowercase step is a prerequisite for NER-based entity boosting to work correctly. If entity boosting is retained, lowercase must also be applied. If the normalizer is removed entirely, entity boosting should also be disabled or redesigned.
+
+### 8. Phase A and Phase B Have Partially Conflicting Objectives
+
+Configurations that maximise Phase A document MAP (no_normalizer at 0.1066, bm25only at 0.0978) do not maximise Phase B answer quality, and vice versa. However, this conflict is not universal across question types:
+
+- **Factoid questions:** favour dense retrieval (fullpipeline, alpha=0.65) — conflicting with Phase A
+- **Yes/No questions:** favour no normalizer — aligned with Phase A (both are maximised by no_normalizer)
+- **List questions:** favour BM25-only — partially aligned with Phase A (bm25only has second-best Phase A MAP)
+
+This means the Phase A vs Phase B tension is primarily a factoid retrieval problem: the documents that maximise factoid answer quality (semantic, diverse, recent) are not the same documents that maximise Phase A MAP (keyword-matched, high-precision).
 
 ---
 

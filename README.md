@@ -20,7 +20,7 @@ Query
         └─> Hybrid Retrieval (MedCPT FAISS + Elasticsearch BM25)
               └─> MedCPT Cross-Encoder Reranking (top-50)
                     └─> MMR + Recency Selection (top-10)
-                          └─> LLM Answer Generation (GPT-5)
+                          └─> LLM Answer Generation (gpt-4o-mini-2024-07-18-5)
                                 └─> BioASQ Submission JSON
 ```
 

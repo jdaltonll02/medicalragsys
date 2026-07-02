@@ -423,7 +423,7 @@ The current context assembly is limited to `max_context_tokens=3000`. Modern LLM
 The current index uses `IndexFlatIP` (exact nearest neighbor search). For a 40M-vector corpus, approximate nearest neighbor indices (e.g., `IndexIVFPQ`) would reduce query latency significantly at a small accuracy cost.
 
 ### 9. End-to-End Fine-Tuning
-The entire pipeline uses pretrained models (MedCPT encoders, cross-encoder, GPT-5). Fine-tuning on BioASQ-specific training data (available from prior BioASQ challenges) would likely improve both Phase A and Phase B metrics.
+The entire pipeline uses pretrained models (MedCPT encoders, cross-encoder, gpt-4o-mini-2024-07-18). Fine-tuning on BioASQ-specific training data (available from prior BioASQ challenges) would likely improve both Phase A and Phase B metrics.
 
 ### 10. Decouple Retrieval and NER Preprocessing
 The normalizer ablations show that removing normalization entirely improves Phase A MAP but hurts Phase B factoid performance. A better approach would be to pass the raw query to BM25 and the MedCPT encoder (preserving case and punctuation for retrieval) while applying normalization only to the NER and entity boosting pipeline. This would decouple the two preprocessing paths and potentially achieve the Phase A gains of no_normalizer without sacrificing Phase B factoid quality.

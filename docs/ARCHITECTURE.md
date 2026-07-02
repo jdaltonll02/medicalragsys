@@ -147,7 +147,7 @@ The final 10 documents are passed as context to an LLM with a structured system 
 - **list questions:** numbered list of items, then a summary sentence.
 - **summary questions:** a single paragraph, max 200 words.
 
-The LLM backend is OpenAI-compatible (configured to the CMU AI Gateway; model `gpt-5`). A stub LLM is available for offline testing by setting `llm.provider: stub` or `LLM_PROVIDER=stub`.
+The LLM backend is OpenAI-compatible (configured to the CMU AI Gateway; model `gpt-4o-mini-2024-07-18`). A stub LLM is available for offline testing by setting `llm.provider: stub` or `LLM_PROVIDER=stub`.
 
 ---
 

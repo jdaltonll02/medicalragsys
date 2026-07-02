@@ -66,24 +66,27 @@ class FAISSIndex:
     def search(self, query_vector: np.ndarray, top_k: int = 10) -> Tuple[np.ndarray, np.ndarray]:
         """
         Search for similar vectors
-        
+
         Args:
             query_vector: Query vector (1D array)
             top_k: Number of results to return
-        
+
         Returns:
-            Tuple of (scores, indices)
+            Tuple of (scores, indices) — FAISS -1 sentinel entries are filtered out.
         """
         if self.index is None or self.index.ntotal == 0:
             return np.array([]), np.array([])
-        
+
         # Normalize query vector
         query_vector = query_vector.reshape(1, -1)
         norm = np.linalg.norm(query_vector)
         query_vector = query_vector / (norm + 1e-8)
-        
+
         scores, indices = self.index.search(query_vector.astype(np.float32), top_k)
-        return scores[0], indices[0]
+        # FAISS returns -1 for "not found" positions (when top_k > ntotal).
+        # Filter these out so callers never receive sentinel indices.
+        valid = indices[0] >= 0
+        return scores[0][valid], indices[0][valid]
 
     def set_doc_ids(self, doc_ids: List[str]):
         """Set external document IDs aligned to FAISS rows.

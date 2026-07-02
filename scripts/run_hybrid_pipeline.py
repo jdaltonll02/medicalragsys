@@ -286,7 +286,25 @@ def run_pipeline(
             pipeline._corpus_lookup = CorpusLookup(pubmed_path, offsets)
             logger.info("Corpus text lookup ready")
         else:
-            logger.warning(f"doc_ids.json not found at {doc_ids_path}; FAISS results will lack text")
+            faiss_only = config.get("fallback", {}).get("use_faiss_only", False)
+            if faiss_only:
+                # Without doc_ids.json FAISS returns numeric row indices (e.g. "0",
+                # "1") instead of real PMIDs — every submitted document will fail to
+                # match the golden set, giving zero precision/recall on all questions.
+                logger.error(
+                    f"FATAL: doc_ids.json not found at {doc_ids_path}. "
+                    "In FAISS-only mode there is no BM25 fallback, so all submitted "
+                    "document IDs will be wrong numeric strings. "
+                    "Run build_faiss_index.py / encode_documents.py first, or check "
+                    "that the FAISS save_path in the config is accessible from this node."
+                )
+                sys.exit(1)
+            else:
+                logger.warning(
+                    f"doc_ids.json not found at {doc_ids_path}. "
+                    "FAISS will fall back to numeric row indices instead of real PMIDs — "
+                    "BM25 will carry retrieval quality but FAISS results will be useless."
+                )
     else:
         corpus_stream = stream_pubmed_corpus(pubmed_path)
         index_pubmed_stream(pipeline, corpus_stream)

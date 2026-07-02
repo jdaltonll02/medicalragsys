@@ -74,18 +74,21 @@ class HybridRetriever:
         
         # Add dense scores
         for idx, score in zip(dense_indices, dense_scores):
+            idx = int(idx)
+            if idx < 0:
+                # FAISS -1 sentinel — should be filtered in FAISSIndex.search(), but
+                # guard here as well so callers never store a garbage PMID.
+                continue
             # Prefer external doc_id mapping from FAISS if available
-            try:
-                if hasattr(self.faiss_index, "doc_ids") and self.faiss_index.doc_ids and int(idx) < len(self.faiss_index.doc_ids):
-                    doc_id = str(self.faiss_index.doc_ids[int(idx)])
-                else:
-                    doc_id = str(int(idx))
-            except Exception:
-                doc_id = str(int(idx))
+            doc_ids = getattr(self.faiss_index, "doc_ids", None)
+            if doc_ids and idx < len(doc_ids):
+                doc_id = str(doc_ids[idx])
+            else:
+                doc_id = str(idx)
             combined_scores[doc_id] = {
                 "dense_score": float(score),
                 "sparse_score": 0.0,
-                "index": int(idx)
+                "index": idx
             }
         
         # Add sparse scores
@@ -103,31 +106,39 @@ class HybridRetriever:
                 if combined_scores[doc_id].get("source") is None:
                     combined_scores[doc_id]["source"] = result.get("source")
         
-        # Normalize scores to [0, 1].
+        # Normalize scores to [0, 1] so they can be linearly combined.
         #
-        # Dense (FAISS) scores are cosine similarities in [-1, 1].  Docs that are
-        # not in the FAISS top-K are stored with dense_score=0.0 as a sentinel.
-        # We normalize only among docs actually retrieved by FAISS (those whose
-        # dense_score was set from a real search result), so that non-FAISS docs
-        # keep their 0.0 sentinel rather than being lifted by min-max arithmetic.
+        # Dense (FAISS/cosine): scores are in [-1, 1].
+        #   - When BM25 is active: use min-max normalization so both retrievers
+        #     contribute on the same scale.
+        #   - When BM25 is absent (FAISS-only, alpha=1.0): skip normalization and
+        #     shift cosine scores to [0, 1] by adding 1 and halving. Min-max would
+        #     collapse to 0 whenever all top-200 scores cluster within 1e-9 of each
+        #     other, making the ranking arbitrary and the combined score 0.
         #
-        # Sparse (BM25) scores are always ≥ 0, so a simple max-normalization is
-        # safe and correct.
+        # Sparse (BM25): scores are always ≥ 0, so max-normalization is safe.
 
-        # Dense: normalize among FAISS-retrieved docs only
+        faiss_only = self.bm25_retriever is None
+
         faiss_scores = [v["dense_score"] for v in combined_scores.values()
                         if v.get("index") is not None]
         if faiss_scores:
-            lo = min(faiss_scores)
-            hi = max(faiss_scores)
-            rng = hi - lo
-            for v in combined_scores.values():
-                if v.get("index") is not None:
-                    # Actual FAISS result — map to [0, 1]
-                    v["dense_score"] = (v["dense_score"] - lo) / rng if rng > 1e-9 else 0.0
-                else:
-                    # BM25-only — not retrieved by FAISS, keep at 0
-                    v["dense_score"] = 0.0
+            if faiss_only:
+                # Shift cosine similarities from [-1,1] → [0,1]; preserves ranking.
+                for v in combined_scores.values():
+                    if v.get("index") is not None:
+                        v["dense_score"] = (v["dense_score"] + 1.0) / 2.0
+            else:
+                # Min-max normalization so FAISS and BM25 land on the same scale.
+                lo = min(faiss_scores)
+                hi = max(faiss_scores)
+                rng = hi - lo
+                for v in combined_scores.values():
+                    if v.get("index") is not None:
+                        v["dense_score"] = (v["dense_score"] - lo) / rng if rng > 1e-9 else 0.5
+                    else:
+                        # BM25-only doc — not retrieved by FAISS, sentinel stays 0
+                        v["dense_score"] = 0.0
 
         # Sparse: max-normalization (scores are always ≥ 0)
         sparse_values = [v["sparse_score"] for v in combined_scores.values()]

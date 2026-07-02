@@ -8,6 +8,7 @@ Hybrid Retrieval-Augmented Generation system for BioASQ Synergy 14 (CLEF 2026), 
 
 - [Architecture](docs/ARCHITECTURE.md) — component design, data flow, config reference, indexing pipeline
 - [Experiment Results](docs/RESULTS.md) — Phase A/B numbers, findings, tradeoffs, limitations, future work
+- [Reproducibility Paths](#reproducibility-paths) — download pre-built corpus, embeddings, or FAISS index from Hugging Face instead of building from scratch
 
 ---
 
@@ -142,6 +143,8 @@ The pipeline expects a PubMed corpus in JSONL format at the path set by `data.do
 
 The BioASQ testsets used for evaluation are already included in `test_data/round_3/`.
 
+Don't have the raw corpus, the MedCPT embeddings, or a built FAISS index yet? See [Reproducibility Paths](#reproducibility-paths) below — all three are published on Hugging Face so you don't have to re-encode 40M documents from scratch.
+
 ### LLM API Key
 
 Set your OpenAI-compatible API key as an environment variable:
@@ -155,6 +158,64 @@ export OPENAI_PROJECT_ID="your-project-id"
 ```
 
 Alternatively, set `llm.api_key` directly in the config YAML. To run the pipeline without any LLM (retrieval only, no answer generation), set `llm.provider: stub` in the config or pass `LLM_PROVIDER=stub` in the environment.
+
+---
+
+## Reproducibility Paths
+
+Corpus indexing (Steps 1–2 of [Reproducing All Experiments](#reproducing-all-experiments)) is the most expensive part of this system — encoding 40M PubMed documents takes GPU-hours, and the outputs (61.7GB of embeddings, 123.5GB FAISS index) are too large to check into git. So that reproducing results doesn't require everyone to re-encode the whole corpus, the raw corpus, the embeddings, and the built FAISS index are all published at:
+
+**[huggingface.co/datasets/jdaltonII02/bioasq-synergy14-medcpt-index](https://huggingface.co/datasets/jdaltonII02/bioasq-synergy14-medcpt-index)** (~227GB total)
+
+Pick the path that matches what you're trying to verify — each skips a different amount of the pipeline:
+
+| Path | Download | Then run | Compute needed | Use when |
+|---|---|---|---|---|
+| **A — Full rebuild** | `corpus/pubmed_corpus.jsonl` (41.6GB) | [Step 1](#step-1--encode-the-corpus-faiss) (encode) → [Step 2](#step-2--build-the-faiss-index) (build index) | GPU recommended for encoding (hours for 40M docs); CPU or GPU for index build | You want to verify the whole pipeline end-to-end, or re-encode with a different model |
+| **B — Reuse embeddings** | `embeddings.npy` + `doc_ids.json` + `embeddings_manifest.json` (~62.2GB) | [Step 2](#step-2--build-the-faiss-index) only | CPU-only, ~10–20 min | You trust the published MedCPT embeddings but want your own FAISS index (different `index_type`, GPU vs. CPU build, etc.) |
+| **C — Reuse index** | `faiss.index` + `doc_ids.json` (~124GB) | Nothing — point `faiss.save_path` at it | None | You just want to run the pipeline or evaluation immediately |
+
+### Downloading from Hugging Face
+
+```bash
+pip install -U huggingface_hub
+
+# Point the HF cache at a disk with enough free space — this dataset is ~227GB
+# total and the default ~/.cache/huggingface can silently fill a small $HOME.
+export HF_HOME=/path/to/large/disk/hf_cache
+
+# Path A — raw corpus only
+hf download jdaltonII02/bioasq-synergy14-medcpt-index \
+  corpus/pubmed_corpus.jsonl --repo-type dataset --local-dir ./data
+
+# Path B — embeddings + doc_ids + manifest (skip corpus + faiss.index)
+hf download jdaltonII02/bioasq-synergy14-medcpt-index \
+  embeddings.npy doc_ids.json embeddings_manifest.json \
+  --repo-type dataset --local-dir ./data
+
+# Path C — prebuilt FAISS index + doc_ids (skip everything else)
+hf download jdaltonII02/bioasq-synergy14-medcpt-index \
+  faiss.index doc_ids.json --repo-type dataset --local-dir ./data
+```
+
+Then point your config at wherever you downloaded to:
+
+```yaml
+data:
+  docs_path: ./data/pubmed_corpus.jsonl        # Path A only — input to Step 1
+  embeddings_path: ./data/embeddings.npy       # Paths A (after Step 1) and B — input to Step 2
+faiss:
+  save_path: ./data/faiss.index                # Path C, or the output of Step 2 for A/B
+```
+
+`doc_ids.json` must live in the same directory as whichever of `embeddings.npy` or `faiss.index` you're using — both `build_faiss_index.py` and the retriever look for it at `<embeddings_dir>/doc_ids.json`.
+
+### If you don't have a PubMed corpus at all
+
+To build a corpus independent of the exact snapshot published above:
+
+- **Small, targeted sets** (a few hundred to a few thousand specific PMIDs): use `src/core/pubmed_fetcher.py`, which wraps the NCBI Entrez `efetch` API. It's rate-limited to 3 requests/sec without an API key (NCBI requires an `email`; pass `api_key` for higher limits), so it isn't practical at corpus scale (millions of documents).
+- **Full corpus rebuild**: NCBI publishes the complete PubMed baseline as gzipped XML at [ftp.ncbi.nlm.nih.gov/pubmed/baseline/](https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/) (plus daily `updatefiles/` deltas). This repo does not include an XML→JSONL converter for the baseline dump — you'd need to parse `PubmedArticle` records into the `{doc_id, title, abstract, pub_date}` schema shown in [Corpus Data](#corpus-data) yourself. For most purposes, downloading `corpus/pubmed_corpus.jsonl` from the HF dataset (Path A above) is far faster than rebuilding from the NCBI baseline.
 
 ---
 
@@ -177,7 +238,11 @@ Swap `--config` for any file in `configs/` to run an ablation. See [Reproducing 
 
 All seven experiments can be reproduced with the Python CLI. Steps 1–3 (corpus indexing) only need to be run once; steps 4 onwards are per-experiment runs that share the same pre-built indices.
 
+> **Skip Step 1, 2, or both:** see [Reproducibility Paths](#reproducibility-paths) to download pre-computed embeddings or a pre-built FAISS index from Hugging Face instead of running these yourself.
+
 ### Step 1 — Encode the corpus (FAISS)
+
+*Skip this step entirely if you downloaded `embeddings.npy` (Path B) or `faiss.index` (Path C) — see [Reproducibility Paths](#reproducibility-paths).*
 
 ```bash
 python scripts/encode_documents.py \
@@ -189,6 +254,8 @@ python scripts/encode_documents.py \
 Produces `embeddings.npy` (~61 GB for 40M docs, float16), `doc_ids.json`, and `embeddings_manifest.json` in the output directory. Update `data.embeddings_path` and `faiss.save_path` in your config to point there.
 
 ### Step 2 — Build the FAISS index
+
+*Skip this step entirely if you downloaded `faiss.index` (Path C) — see [Reproducibility Paths](#reproducibility-paths).*
 
 ```bash
 python scripts/build_faiss_index.py \

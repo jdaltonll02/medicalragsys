@@ -41,7 +41,7 @@ evaluation:
     - relevance
     - evidence_support
     enabled: false
-    model: gpt-5
+    model: gpt-4o-mini-2024-07-18
     temperature: 0.0
   metrics:
   - recall@5
@@ -67,19 +67,12 @@ fallback:
   use_faiss_only: false
 
 # LLM Configuration
-# Provider options: "openai", "gemini", "stub"
-# For OpenAI:
-#   - Set OPENAI_API_KEY environment variable
-#   - Optionally set OPENAI_BASE_URL and OPENAI_PROJECT_ID for custom endpoints
-# For Gemini:
-#   - Set GOOGLE_API_KEY environment variable
-#   - Optionally set GOOGLE_CLOUD_PROJECT for GCP integration
 llm:
   enabled: true
   provider: openai  # Change to "gemini" to use Google Gemini instead
-  model: gpt-5  # Full model name required for CMU gateway
+  model: gpt-4o-mini-2024-07-18  # Full model name required for CMU gateway
   temperature: 0.0
-  max_tokens: 4096  # gpt-5 at CMU is a reasoning model; reasoning tokens consume budget before output
+  max_tokens: 4096  # gpt-4o-mini-2024-07-18 at CMU is a reasoning model; reasoning tokens consume budget before output
   api_key: sk-FSe9sem3s0klJg7R77q4-A  # Will use OPENAI_API_KEY environment variable
   base_url: https://ai-gateway.andrew.cmu.edu  # Will use OPENAI_BASE_URL if set (e.g., CMU AI Gateway)
   project_id: 8bd2c6d561fa8190e42860b2a835207361d9c596262ba3541c50da670c21be13  # Will use OPENAI_PROJECT_ID if set

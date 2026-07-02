@@ -467,3 +467,21 @@ The `Authorization: Bearer <Firebase-JWT>` header sent by the app is accepted bu
 
 - **Professor Eric Nyberg** — Language Technology Institute, Carnegie Mellon University
 - **John Dalton Gibson** — MSECE, Carnegie Mellon University
+
+---
+
+## Citation
+
+The system description paper for this work is in preparation as a camera-ready submission to the CLEF 2026 BioASQ Synergy 14 working notes and is not yet published. Until it is, please cite the software directly:
+
+```bibtex
+@software{gibson2026medicalrag,
+  author = {Gibson, John Dalton and Nyberg, Eric},
+  title  = {MedicalRAG: A Hybrid Retrieval-Augmented Generation System for BioASQ Synergy 14},
+  year   = {2026},
+  url    = {https://github.com/jdaltonll02/medicalragsys},
+  note   = {CLEF 2026 BioASQ Synergy 14 working notes paper forthcoming}
+}
+```
+
+> **TODO:** replace this entry with the full working-notes citation (CEUR-WS volume, pages, DOI) once the camera-ready paper is accepted and published.

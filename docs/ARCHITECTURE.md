@@ -264,26 +264,6 @@ java -Xmx10G -cp ./flat/BioASQEvaluation/dist/BioASQEvaluation.jar \
 **Phase A output** (20 space-separated values): positions 1–5 concepts (deprecated), 6=Doc MPrec, 7=Doc MRec, 8=Doc MF1, **9=Doc MAP** (the primary Phase A metric), 10=Doc GMAP, 11–15 snippets, 16–20 triples (deprecated).
 
 **Phase B output** (10 values): YesNo Acc, Factoid Strict Acc, Factoid Lenient Acc, Factoid MRR, List Prec, List Rec, List F1, YesNo macroF1, YesNo F1-yes, YesNo F1-no.
-
-### Golden Files
-
-| File | Questions | Use |
-|---|---|---|
-| `test_data/round_3/golden_round3_testset.json` | 117 | Original (has null exact_answers, do not use directly) |
-| `test_data/round_3/golden_round3_testset_phaseA.json` | 117 | `-phaseA` evaluation (11 unanswerable questions have dummy answers to prevent Java crash) |
-| `test_data/round_3/golden_round3_testset_phaseB.json` | 106 | `-phaseB` evaluation (11 unanswerable questions excluded entirely) |
-
-### Python Evaluation
-
-```bash
-python scripts/evaluate_bioasq.py --predictions results/submission.json \
-                                   --golden test_data/round_3/golden_round3_testset_phaseB.json
-```
-
-```bash
-bash scripts/evaluate_and_resubmit.sh results/submission.json
-```
-
 ---
 
 ## Source Module Reference

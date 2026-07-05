@@ -7,7 +7,6 @@ Hybrid Retrieval-Augmented Generation system for BioASQ Synergy 14 (CLEF 2026), 
 ## Quick Links
 
 - [Architecture](docs/ARCHITECTURE.md) — component design, data flow, config reference, indexing pipeline
-- [Experiment Results](docs/RESULTS.md) — Phase A/B numbers, findings, tradeoffs, limitations, future work
 - [Reproducibility Paths](#reproducibility-paths) — download pre-built corpus, embeddings, or FAISS index from Hugging Face instead of building from scratch
 
 ---
@@ -23,15 +22,6 @@ Query
                           └─> LLM Answer Generation (gpt-4o-mini-2024-07-18-5)
                                 └─> BioASQ Submission JSON
 ```
-
-**Best results across 7 experiments (metrics are not from the same config — see [RESULTS.md](docs/RESULTS.md)):**
-
-| Metric | Best value | Config |
-|---|---|---|
-| Phase A Doc MAP | **0.1066** | no_normalizer |
-| YesNo Accuracy | **1.0000** | no_normalizer |
-| Factoid MRR | **0.3809** | fullpipeline |
-| List F1 | **0.3275** | fullpipeline |
 
 **Primary submission config (alpha=0.65, MMR, recency_weight=0.3, normalizer on):** Phase A MAP 0.0894 · YesNo 0.9545 · Factoid MRR 0.3809 · List F1 0.3275
 
@@ -68,20 +58,8 @@ medicalrag_synergy14/
 │   ├── no_recency.yaml         — recency-disabled ablation
 │   ├── no_normalizer.yaml      — query normalizer fully disabled
 │   └── no_lowercase.yaml       — normalizer on, lowercase step disabled
-├── test_data/round_3/
-│   ├── golden_round3_testset_phaseA.json  — 117 questions (Phase A eval)
-│   └── golden_round3_testset_phaseB.json  — 106 questions (Phase B eval)
-├── results/
-│   ├── submission.json              — primary submission
-│   ├── submission_alpha03.json
-│   ├── submission_no_mmr.json
-│   ├── submission_no_recency.json
-│   ├── submission_no_normalizer.json
-│   └── submission_no_lowercase.json
 ├── docs/
-│   ├── ARCHITECTURE.md         — full system documentation
-│   └── RESULTS.md              — all experiment results and analysis
-└── tests/                      — unit tests
+│   ├── ARCHITECTURE.md         — full system 
 ```
 
 ---
@@ -294,31 +272,19 @@ python scripts/run_hybrid_pipeline.py \
   --testset $TESTSET \
   --output results/submission_bm25only.json
 
-# Experiment 3 — Alpha 0.3
-python scripts/run_hybrid_pipeline.py \
-  --config configs/alpha03.yaml \
-  --testset $TESTSET \
-  --output results/submission_alpha03.json
-
-# Experiment 4 — MMR disabled
+# Experiment 3 — MMR disabled
 python scripts/run_hybrid_pipeline.py \
   --config configs/no_mmr.yaml \
   --testset $TESTSET \
   --output results/submission_no_mmr.json
 
-# Experiment 5 — Recency disabled
-python scripts/run_hybrid_pipeline.py \
-  --config configs/no_recency.yaml \
-  --testset $TESTSET \
-  --output results/submission_no_recency.json
-
-# Experiment 6 — Query normalizer fully disabled
+# Experiment 4 - Query Normalizer Disabled
 python scripts/run_hybrid_pipeline.py \
   --config configs/no_normalizer.yaml \
   --testset $TESTSET \
   --output results/submission_no_normalizer.json
 
-# Experiment 7 — Normalizer on, lowercase disabled
+# Experiment 5 — Normalizer on, lowercase disabled
 python scripts/run_hybrid_pipeline.py \
   --config configs/no_lowercase.yaml \
   --testset $TESTSET \
@@ -348,24 +314,6 @@ The key metrics to read from the output:
 - **Phase B:** position 1 = YesNo Accuracy, position 4 = Factoid MRR, position 7 = List F1
 
 > **Note on golden files:** `golden_round3_testset_phaseA.json` contains all 117 questions including 11 unanswerable ones (which have dummy `exact_answer` values to prevent the Java evaluator from crashing). `golden_round3_testset_phaseB.json` excludes those 11 questions entirely. Always use the `-phaseA` file with the `-phaseA` flag and the `-phaseB` file with the `-phaseB` flag.
-
----
-
-## Key Configuration Parameters
-
-| Parameter | Default | Effect |
-|---|---|---|
-| `retrieval.alpha` | 0.65 | Dense-sparse weight (0.0 = BM25 only) |
-| `mmr.enabled` | true | Use MMR for final doc selection |
-| `mmr.lambda_param` | 0.95 | Relevance vs. diversity balance |
-| `mmr.recency_weight` | 0.3 | Publication-date recency boost |
-| `reranker.top_k` | 50 | Docs after cross-encoder reranking |
-| `query_normalization.enabled` | true | Apply query normalizer (false = raw query) |
-| `query_normalization.lowercase` | true | Lowercase query before retrieval |
-| `query_normalization.remove_punctuation` | true | Strip punctuation from query |
-| `llm.provider` | openai | `openai`, `gemini`, or `stub` |
-
-See [Architecture](docs/ARCHITECTURE.md) for the full configuration reference.
 
 ---
 
@@ -469,19 +417,3 @@ The `Authorization: Bearer <Firebase-JWT>` header sent by the app is accepted bu
 - **John Dalton Gibson** — MSECE, Carnegie Mellon University
 
 ---
-
-## Citation
-
-The system description paper for this work is in preparation as a camera-ready submission to the CLEF 2026 BioASQ Synergy 14 working notes and is not yet published. Until it is, please cite the software directly:
-
-```bibtex
-@software{gibson2026medicalrag,
-  author = {Gibson, John Dalton and Nyberg, Eric},
-  title  = {MedicalRAG: A Hybrid Retrieval-Augmented Generation System for BioASQ Synergy 14},
-  year   = {2026},
-  url    = {https://github.com/jdaltonll02/medicalragsys},
-  note   = {CLEF 2026 BioASQ Synergy 14 working notes paper forthcoming}
-}
-```
-
-> **TODO:** replace this entry with the full working-notes citation (CEUR-WS volume, pages, DOI) once the camera-ready paper is accepted and published.
